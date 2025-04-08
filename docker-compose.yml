@@ -1,0 +1,77 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "5433:5432"  # Host:Container
+    environment:
+      POSTGRES_PASSWORD: mcharo
+      POSTGRES_USER: nbts_user
+      POSTGRES_DB: identity_db
+    volumes:
+      - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/postgresql/data:/var/lib/postgresql
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8089:8080"
+
+  donor-service:
+    build:
+      context: ./donor-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    depends_on:
+      - db
+    environment:
+      SPRING_APPLICATION_NAME: donor-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5433/donor_service_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SERVER_PORT: 8082
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_FLYWAY_ENABLED: "false"
+
+  zone-service:
+    build:
+      context: ./zone-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db
+    environment:
+      SPRING_APPLICATION_NAME: zone-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5433/zone_db
+      SPRING_DATASOURCE_USERNAME: nbts_user
+      SPRING_DATASOURCE_PASSWORD: mcharo
+      SERVER_PORT: 8081
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_FLYWAY_ENABLED: "false"
+
+  identity-service:
+    build:
+      context: ./identity-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_APPLICATION_NAME: identity-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5433/identity_db
+      SPRING_DATASOURCE_USERNAME: nbts_user
+      SPRING_DATASOURCE_PASSWORD: mcharo
+      SERVER_PORT: 8080
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_FLYWAY_ENABLED: "false"
