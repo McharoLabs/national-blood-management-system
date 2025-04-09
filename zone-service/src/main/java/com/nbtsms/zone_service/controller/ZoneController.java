@@ -19,11 +19,11 @@ import java.util.UUID;
 @RequestMapping("zones")
 public class ZoneController {
     private final ZoneServiceImpl zoneService;
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
 
-    public ZoneController(ZoneServiceImpl zoneService, WebClient webClient) {
+    public ZoneController(ZoneServiceImpl zoneService, WebClient.Builder webClientBuilder) {
         this.zoneService = zoneService;
-        this.webClient = webClient;
+        this.webClientBuilder = webClientBuilder;
     }
 
     @DeleteMapping("/zone/{zone-id}/remove-admin")
@@ -51,8 +51,8 @@ public class ZoneController {
 
         Map<String, String> response = new HashMap<>();
 
-        Boolean result = webClient.get()
-                .uri("http://localhost:8080/users/user/exists/{id}", adminDTO.getAdminId())
+        Boolean result = webClientBuilder.build().get()
+                .uri("http://identity-service/users/user/exists/{id}", adminDTO.getAdminId())
                 .retrieve()
                 .bodyToMono(Boolean.class)
                 .block();
@@ -69,6 +69,9 @@ public class ZoneController {
         } catch (NotFoundException e) {
             response.putAll(e.getErrorMessages());
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        } catch (ConflictException e) {
+            response.putAll(e.getErrorMessages());
+            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
         } catch (Exception e) {
             response.put("detail", "Internal server error: " + e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);

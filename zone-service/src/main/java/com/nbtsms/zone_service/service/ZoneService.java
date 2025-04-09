@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface ZoneService {
-    String create(CreateZoneDTO createZoneDTO) throws ConflictException;
+    void create(CreateZoneDTO createZoneDTO) throws ConflictException, ConflictException;
     void assignZoneAdmin(AssignZoneAdminDTO zoneAdminDTO, UUID zoneId) throws NotFoundException, ConflictException;
     void removeZoneAdmin(UUID zoneId) throws NotFoundException;
     boolean isZoneExists(UUID id);

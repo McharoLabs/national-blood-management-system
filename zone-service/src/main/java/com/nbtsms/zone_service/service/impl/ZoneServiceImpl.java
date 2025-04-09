@@ -31,7 +31,7 @@ public class ZoneServiceImpl implements ZoneService {
 
 
     @Override
-    public String create(CreateZoneDTO createZoneDTO) throws ConflictException {
+    public void create(CreateZoneDTO createZoneDTO) throws ConflictException {
         Map<String, String> errors = new HashMap<>();
 
         Optional<Zone> existingZone = zoneRepository.findByName(createZoneDTO.getName());
@@ -44,7 +44,6 @@ public class ZoneServiceImpl implements ZoneService {
         try {
             Zone zone = ZoneMapper.toEntity(createZoneDTO);
             zoneRepository.save(zone);
-            return "Zone added successfully";
         } catch (DataIntegrityViolationException dv) {
             logger.error("Data integrity violation: zone already exists.", dv);
 
@@ -65,7 +64,7 @@ public class ZoneServiceImpl implements ZoneService {
 
 
     @Override
-    public void assignZoneAdmin(AssignZoneAdminDTO zoneAdminDTO, UUID zoneId) throws NotFoundException {
+    public void assignZoneAdmin(AssignZoneAdminDTO zoneAdminDTO, UUID zoneId) throws NotFoundException, ConflictException {
         Map<String, String> errors = new HashMap<>();
 
         Zone zone = zoneRepository.findById(zoneId).orElse(null);
@@ -74,6 +73,11 @@ public class ZoneServiceImpl implements ZoneService {
         if (zone == null) {
             errors.put("zoneId", "Zone not found with ID: " + zoneId);
             throw new NotFoundException(errors);
+        }
+
+        if (zone.getAdminId() != null) {
+            errors.put("adminId", "Zone already has an admin assigned.");
+            throw new ConflictException(errors);
         }
 
         try {
