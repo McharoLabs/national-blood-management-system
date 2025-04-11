@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("centers")
+@RequestMapping("api/centers")
 public class CenterController {
     private final CenterServiceImpl centerService;
 

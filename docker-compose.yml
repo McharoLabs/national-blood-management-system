@@ -2,76 +2,147 @@ version: '3.9'
 
 services:
 
-  db:
+  postgres-identity:
+    container_name: postgres-identity
     image: postgres
-    restart: always
-    shm_size: 128mb
-    ports:
-      - "5433:5432"  # Host:Container
     environment:
+      POSTGRES_DB: identity_service_db
+      POSTGRES_USER: mcharo
       POSTGRES_PASSWORD: mcharo
-      POSTGRES_USER: nbts_user
-      POSTGRES_DB: identity_db
+      PGDATA: /data/postgres
     volumes:
-      - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./docker/postgresql/data:/var/lib/postgresql
-
-  adminer:
-    image: adminer
-    restart: always
+      - ./postgres-identity:/data/postgres
     ports:
-      - "8089:8080"
+      - "5433:5432"
+    restart: unless-stopped
 
-  donor-service:
-    build:
-      context: ./donor-service
-      dockerfile: Dockerfile
-    ports:
-      - "8082:8082"
-    depends_on:
-      - db
+  postgres-donor:
+    container_name: postgres-donor
+    image: postgres
     environment:
-      SPRING_APPLICATION_NAME: donor-service
-      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5433/donor_service_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      SERVER_PORT: 8082
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
-      SPRING_FLYWAY_ENABLED: "false"
-
-  zone-service:
-    build:
-      context: ./zone-service
-      dockerfile: Dockerfile
+      POSTGRES_DB: donor_service_db
+      POSTGRES_USER: mcharo
+      POSTGRES_PASSWORD: mcharo
+      PGDATA: /data/postgres
+    volumes:
+      - ./postgres-donor:/data/postgres
     ports:
-      - "8081:8081"
-    depends_on:
-      - db
-    environment:
-      SPRING_APPLICATION_NAME: zone-service
-      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5433/zone_db
-      SPRING_DATASOURCE_USERNAME: nbts_user
-      SPRING_DATASOURCE_PASSWORD: mcharo
-      SERVER_PORT: 8081
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
-      SPRING_FLYWAY_ENABLED: "false"
+      - "5434:5432"
+    restart: unless-stopped
 
-  identity-service:
-    build:
-      context: ./identity-service
-      dockerfile: Dockerfile
+  postgres-zone:
+    container_name: postgres-zone
+    image: postgres
+    environment:
+      POSTGRES_DB: zone_service_db
+      POSTGRES_USER: mcharo
+      POSTGRES_PASSWORD: mcharo
+      PGDATA: /data/postgres
+    volumes:
+      - ./postgres-zone:/data/postgres
+    ports:
+      - "5435:5432"
+    restart: unless-stopped
+
+  postgres-keycloak:
+    container_name: postgres-keycloak
+    image: postgres
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+      PGDATA: /data/postgres
+    volumes:
+      - ./keycloak-postgres:/data/postgres
+    ports:
+      - "5437:5432"
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.1
+    container_name: keycloak
+    command: [ "start-dev", "--import-realm" ]
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres-keycloak
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8181:8080"
+    volumes:
+      - ./realms/:/opt/keycloak/data/import/
+    depends_on:
+      - postgres-keycloak
+    restart: unless-stopped
+
+  discovery-server:
+    image: seranise/discovery-server:latest
+    container_name: discovery-server
+    pull_policy: always
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    restart: unless-stopped
+
+  api-gateway:
+    image: seranise/api-gateway:latest
+    container_name: api-gateway
+    pull_policy: always
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      - discovery-server
     environment:
-      SPRING_APPLICATION_NAME: identity-service
-      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5433/identity_db
-      SPRING_DATASOURCE_USERNAME: nbts_user
-      SPRING_DATASOURCE_PASSWORD: mcharo
-      SERVER_PORT: 8080
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
-      SPRING_FLYWAY_ENABLED: "false"
+      - SPRING_PROFILES_ACTIVE=docker
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=TRACE
+    restart: unless-stopped
+
+  identity-service:
+    image: seranise/identity-service:latest
+    container_name: identity-service
+    pull_policy: always
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-identity
+      - api-gateway
+      - discovery-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-identity:5432/identity_service_db
+    restart: unless-stopped
+
+  donor-service:
+    image: seranise/donor-service:latest
+    container_name: donor-service
+    pull_policy: always
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres-donor
+      - api-gateway
+      - discovery-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-donor:5432/donor_service_db
+    restart: unless-stopped
+
+  zone-service:
+    image: seranise/zone-service:latest
+    container_name: zone-service
+    pull_policy: always
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres-zone
+      - api-gateway
+      - identity-service
+      - discovery-server
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-zone:5432/zone_service_db
+    restart: unless-stopped

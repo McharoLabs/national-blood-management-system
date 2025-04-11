@@ -3,6 +3,7 @@ package com.nbtsms.zone_service.service.impl;
 import com.nbtsms.zone_service.dto.AssignZoneAdminDTO;
 import com.nbtsms.zone_service.dto.CreateZoneDTO;
 import com.nbtsms.zone_service.entity.Zone;
+import com.nbtsms.zone_service.exception.BadRequestException;
 import com.nbtsms.zone_service.exception.ConflictException;
 import com.nbtsms.zone_service.exception.NotFoundException;
 import com.nbtsms.zone_service.mapper.ZoneMapper;
@@ -92,12 +93,18 @@ public class ZoneServiceImpl implements ZoneService {
 
 
     @Override
-    public void removeZoneAdmin(UUID zoneId) throws NotFoundException {
+    public void removeZoneAdmin(UUID zoneId) throws NotFoundException, BadRequestException {
+        Map<String, String> errors = new HashMap<>();
+
         Zone zone = zoneRepository.findById(zoneId).orElseThrow(() -> {
-            Map<String, String> errors = new HashMap<>();
             errors.put("zoneId", "Zone not found with ID: " + zoneId);
             return new NotFoundException(errors);
         });
+
+        if (zone.getAdminId() == null) {
+            errors.put("zoneId", "No admin assigned to this zone");
+            throw new BadRequestException(errors);
+        }
 
         zone.setAdminId(null);
         zoneRepository.save(zone);

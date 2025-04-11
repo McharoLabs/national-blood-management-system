@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("regions")
+@RequestMapping("api/regions")
 public class RegionController {
     private final RegionServiceImpl regionService;
 

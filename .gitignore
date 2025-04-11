@@ -36,3 +36,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+keycloak-postgres
+postgres-donor
+postgres-identity
+postgres-zone
