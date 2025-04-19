@@ -22,6 +22,4 @@ public class CreateCenterDTO {
 
     @NotNull(message = "Center region is mandatory")
     private UUID regionId;
-
-    private String contactPerson;
 }

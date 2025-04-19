@@ -1,67 +1,124 @@
 package com.nbtsms.identity_service.service.impl;
 
+import com.nbtsms.identity_service.dto.AssignRole;
 import com.nbtsms.identity_service.dto.CreateUserDTO;
+import com.nbtsms.identity_service.dto.UserDTO;
 import com.nbtsms.identity_service.entity.User;
+import com.nbtsms.identity_service.enums.Role;
+import com.nbtsms.identity_service.exception.BadRequestException;
+import com.nbtsms.identity_service.exception.ConflictException;
+import com.nbtsms.identity_service.exception.NotFoundException;
+import com.nbtsms.identity_service.mapper.AuthenticationMapper;
 import com.nbtsms.identity_service.mapper.UserMapper;
 import com.nbtsms.identity_service.repository.UserRepository;
 import com.nbtsms.identity_service.service.UserService;
-import com.nbtsms.identity_service.exception.BadRequestException;
-import com.nbtsms.identity_service.exception.ConflictException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
-    public String create(CreateUserDTO createUserDTO) throws BadRequestException, ConflictException {
-        Map<String, String> conflictMessages = new HashMap<>();
+    public void create(CreateUserDTO createUserDTO) throws ConflictException, BadRequestException {
+        Optional<User> existingUserByEmail = userRepository.findByEmail(createUserDTO.getEmail());
+        Optional<User> existingUserByPhoneNumber = userRepository.findByPhoneNumber(createUserDTO.getPhoneNumber());
+        Map<String, String> errors = new HashMap<>();
+
+        if (existingUserByEmail.isPresent()) {
+            errors.put("email", "Staff with given email, already exists.");
+
+        }
+
+        if (existingUserByPhoneNumber.isPresent()) {
+            errors.put("phoneNumber", "Staff with this phone number already exists.");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ConflictException(errors);
+        }
+
+        User user = AuthenticationMapper.toEntity(createUserDTO);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRoles(List.of(Role.USER));
 
         try {
-            User user = UserMapper.toEntity(createUserDTO);
             userRepository.save(user);
-            return "User created successfully";
-        } catch (DataIntegrityViolationException e) {
-            logger.error("User already exists or data integrity violation.", e);
-
-            String errorMessage = e.getMessage().toLowerCase();
-
-            if (errorMessage.contains("duplicate key")) {
-                if (errorMessage.contains("email")) {
-                    conflictMessages.put("email", "Email already exists.");
-                }
-                if (errorMessage.contains("phone_number")) {
-                    conflictMessages.put("phoneNumber", "Phone number already exists.");
-                }
-            }
-
-            if (!conflictMessages.isEmpty()) {
-                throw new ConflictException(conflictMessages);
-            }
-
-            throw new ConflictException(Map.of("error", "Data integrity violation."));
         } catch (Exception e) {
-            logger.error("An unexpected error occurred while creating the user.", e);
-            throw new BadRequestException(e.getMessage());
+            logger.error("An unexpected error occurred.", e);
+            throw e;
         }
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public boolean isUserPreset(UUID id) {
-        return userRepository.findById(id).isPresent();
+    public List<UserDTO> getUsers() {
+        List<User> users = userRepository.findAll();
+
+        return users
+                .stream()
+                .filter(user -> user
+                        .getRoles()
+                        .stream()
+                        .noneMatch(role -> role == Role.ADMIN || role == Role.SUPER_ADMIN))
+                .map(UserMapper::toResponse)
+                .collect(Collectors.toList());
     }
+
+    @Override
+    public List<UserDTO> getAllAdmin() {
+        List<User> users = userRepository.findAll();
+
+        return users
+                .stream()
+                .filter(user -> user.getRoles().contains(Role.ADMIN))
+                .map(UserMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<User> getUser(UUID id) {
+        return userRepository.findById(id);
+    }
+
+    @Override
+    public void assignRole(AssignRole assignRole, UUID userId) throws NotFoundException, BadRequestException {
+        Map<String, String> errors = new HashMap<>();
+        User user = userRepository.findById(userId).orElse(null);
+
+        if (user == null) {
+            errors.put("user", "User not found");
+            throw new NotFoundException(errors);
+        }
+
+        Set<Role> currentRoles = new HashSet<>(user.getRoles());
+
+        Set<Role> incomingRoles = new HashSet<>(assignRole.getRoles());
+        incomingRoles.add(Role.USER);
+
+        if (incomingRoles.contains(Role.SUPER_ADMIN)) {
+            errors.put("roles", "Cannot assign super admin role.");
+            throw new BadRequestException(errors);
+        }
+
+        if (currentRoles.equals(incomingRoles)) {
+            errors.put("roles", "No changes were made. Same roles already assigned.");
+            throw new BadRequestException(errors);
+        }
+
+        user.setRoles(new ArrayList<>(incomingRoles));
+        userRepository.save(user);
+    }
+
 }

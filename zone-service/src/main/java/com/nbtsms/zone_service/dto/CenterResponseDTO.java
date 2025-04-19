@@ -1,6 +1,6 @@
-package com.nbtsms.identity_service.entity;
+package com.nbtsms.zone_service.dto;
 
-import jakarta.persistence.*;
+import com.nbtsms.zone_service.entity.Region;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,14 +12,9 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-
-@Entity
-@Table(name = "roles")
-public class Role {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+public class CenterResponseDTO {
     private UUID id;
-
-    @Column(nullable = false, unique = true)
     private String name;
+    private String address;
+    private RegionResponseDTO region;
 }

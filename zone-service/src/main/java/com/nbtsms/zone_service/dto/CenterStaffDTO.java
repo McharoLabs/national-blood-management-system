@@ -1,5 +1,6 @@
-package com.nbtsms.identity_service.dto;
+package com.nbtsms.zone_service.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,8 +12,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-
-public class RoleDTO {
-    private UUID id;
-    private String name;
+public class CenterStaffDTO {
+    @NotNull(message = "Staff is mandatory")
+    private UUID staffId;
 }

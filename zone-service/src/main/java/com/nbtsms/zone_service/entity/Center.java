@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -30,6 +32,5 @@ public class Center {
     @JoinColumn(nullable = false)
     private Region region;
 
-    @Column(nullable = true)
-    private String contactPerson;
+    private List<UUID> staff = new ArrayList<>();
 }

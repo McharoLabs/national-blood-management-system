@@ -1,6 +1,7 @@
 package com.nbtsms.zone_service.service.impl;
 
 import com.nbtsms.zone_service.dto.CreateRegionDTO;
+import com.nbtsms.zone_service.dto.RegionResponseDTO;
 import com.nbtsms.zone_service.entity.Region;
 import com.nbtsms.zone_service.entity.Zone;
 import com.nbtsms.zone_service.exception.ConflictException;
@@ -15,7 +16,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class RegionServiceImpl implements RegionService {
@@ -29,41 +33,36 @@ public class RegionServiceImpl implements RegionService {
     }
 
     @Override
-    public void create(CreateRegionDTO createRegionDTO) throws ConflictException, NotFoundException {
+    public UUID create(CreateRegionDTO createRegionDTO) throws ConflictException, NotFoundException {
+        regionRepository.findByName(createRegionDTO.getName()).ifPresent(region -> {
+            throw new ConflictException(Map.of("name", "Region with this name already exists."));
+        });
+
+        Zone zone = zoneRepository.findById(createRegionDTO.getZoneId()).orElse(null);
+
         Map<String, String> errors = new HashMap<>();
 
-        try {
-            Zone zone = zoneRepository.findById(createRegionDTO.getZoneId()).orElse(null);
+        if (zone == null) errors.put("zone", "Zone not found");
 
-            if (zone == null) {
-                errors.put("zoneId", "Zone not found");
-                throw new NotFoundException(errors);
-            }
+        if (!errors.isEmpty()) throw new NotFoundException(errors);
 
-            Region region = RegionMapper.toEntity(createRegionDTO);
-            region.setZone(zone);
-            regionRepository.save(region);
-        } catch (DataIntegrityViolationException dv) {
-            logger.error("Region already exists or data integrity violation.", dv);
+        Region region = new Region();
+        region.setName(createRegionDTO.getName());
+        region.setZone(zone);
+        return regionRepository.save(region).getId();
+    }
 
-            String errorMessage = dv.getMessage().toLowerCase();
+    @Override
+    public boolean regionExists(UUID regionId) {
+        return regionRepository.findById(regionId).isPresent();
+    }
 
-            if (errorMessage.contains("duplicate key")) {
-                if (errorMessage.contains("name")) {
-                    errors.put("name", "Region already exists.");
-                }
-            }
-
-            if (!errors.isEmpty()) {
-                throw new ConflictException(errors);
-            }
-
-            throw new ConflictException(Map.of("error", "Data integrity violation."));
-        }
-        catch (RuntimeException ex) {
-            logger.error("An unexpected error occurred while creating the region.", ex);
-            throw ex;
-        }
+    @Override
+    public List<RegionResponseDTO> getRegions() {
+        List<Region> regions = regionRepository.findAll();
+        return regions.stream()
+                .map(RegionMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
 }

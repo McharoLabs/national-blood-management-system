@@ -14,5 +14,5 @@ public class ConflictException extends RuntimeException {
     public ConflictException(Map<String, String> errorMessages) {
         this.errorMessages = errorMessages;
     }
-
 }
+

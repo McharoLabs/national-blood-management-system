@@ -7,21 +7,24 @@ import com.nbtsms.zone_service.service.impl.RegionServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("api/regions")
+@RequestMapping("regions")
 public class RegionController {
     private final RegionServiceImpl regionService;
 
     public RegionController(RegionServiceImpl regionService) {
         this.regionService = regionService;
+    }
+
+    @GetMapping("{regionId}/exists")
+    public boolean regionExists(@PathVariable("regionId") UUID regionId) {
+        return regionService.regionExists(regionId);
     }
 
     @PostMapping("/create")

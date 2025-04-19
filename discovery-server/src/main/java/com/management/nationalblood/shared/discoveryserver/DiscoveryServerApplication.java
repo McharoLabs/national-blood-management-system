@@ -1,4 +1,4 @@
-package com.management.nationalblood.discoveryserver;
+package com.management.nationalblood.shared.discoveryserver;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

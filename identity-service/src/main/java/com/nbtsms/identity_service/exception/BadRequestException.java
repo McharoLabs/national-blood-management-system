@@ -1,11 +1,19 @@
 package com.nbtsms.identity_service.exception;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+import java.util.Map;
+
+@Getter
+@ResponseStatus(HttpStatus.NOT_FOUND)
 public class BadRequestException extends RuntimeException{
-    public BadRequestException(String message) {
-        super(message);
+    private final Map<String, String> errorMessages;
+
+    public BadRequestException(Map<String, String> errorMessages) {
+        this.errorMessages = errorMessages;
     }
 }
+
+

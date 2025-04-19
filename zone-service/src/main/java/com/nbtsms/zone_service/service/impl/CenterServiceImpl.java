@@ -1,5 +1,6 @@
 package com.nbtsms.zone_service.service.impl;
 
+import com.nbtsms.zone_service.dto.CenterResponseDTO;
 import com.nbtsms.zone_service.dto.CreateCenterDTO;
 import com.nbtsms.zone_service.entity.Center;
 import com.nbtsms.zone_service.entity.Region;
@@ -15,7 +16,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class CenterServiceImpl implements CenterService {
@@ -29,39 +33,41 @@ public class CenterServiceImpl implements CenterService {
     }
 
     @Override
-    public void create(CreateCenterDTO createCenterDTO) throws ConflictException, NotFoundException {
-        Map<String, String> errors = new HashMap<>();
+    public UUID create(CreateCenterDTO createCenterDTO) throws ConflictException, NotFoundException {
+        centerRepository.findByName(createCenterDTO.getName()).ifPresent(center -> {
+            throw new ConflictException(Map.of("name", "Center with this name already exists."));
+        });
 
         Region region = regionRepository.findById(createCenterDTO.getRegionId()).orElse(null);
+
         if (region == null) {
-            errors.put("regionId", "Region not found");
-            throw new NotFoundException(errors);
+            throw new NotFoundException(Map.of("regionId", "Region not found"));
         }
 
-        Center center = CenterMapper.toEntity(createCenterDTO);
+        Center center = new Center();
+        center.setName(createCenterDTO.getName());
+        center.setAddress(createCenterDTO.getAddress());
         center.setRegion(region);
+        return centerRepository.save(center).getId();
+    }
 
-        try {
-            centerRepository.save(center);
-        } catch (DataIntegrityViolationException dv) {
-            logger.error("Center already exists or data integrity violation.", dv);
+    @Override
+    public boolean centerExists(UUID centerId) {
+        return centerRepository.findById(centerId).isPresent();
+    }
 
-            String errorMessage = dv.getMessage().toLowerCase();
+    @Override
+    public List<CenterResponseDTO> getCenters() {
+        List<Center> centers = centerRepository.findAll();
+        return centers.stream()
+                .map(CenterMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 
-            if (errorMessage.contains("duplicate key")) {
-                if (errorMessage.contains("name")) {
-                    errors.put("name", "Center with this name already exists.");
-                }
-            }
-
-            if (!errors.isEmpty()) {
-                throw new ConflictException(errors);
-            }
-
-            throw new ConflictException(Map.of("error", "Data integrity violation."));
-        } catch (RuntimeException ex) {
-            logger.error("An unexpected error occurred while creating the center.", ex);
-            throw ex;
-        }
+    @Override
+    public CenterResponseDTO getCenter(UUID centerId) throws NotFoundException {
+        Center center = centerRepository.findById(centerId)
+                .orElseThrow(() -> new NotFoundException(Map.of("center", "Center not found")));
+        return CenterMapper.toResponse(center);
     }
 }

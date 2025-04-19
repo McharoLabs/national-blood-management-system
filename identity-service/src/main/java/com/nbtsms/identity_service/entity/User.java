@@ -1,5 +1,6 @@
 package com.nbtsms.identity_service.entity;
 
+import com.nbtsms.identity_service.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,10 +8,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -19,7 +25,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -37,8 +43,36 @@ public class User {
     @Column(nullable = false, unique = true)
     private String phoneNumber;
 
+    private UUID zoneId;
+    private UUID centerId;
+
+    @Column(nullable = false)
+    private boolean enabled = true;
+
+    @Column(nullable = false)
+    private boolean accountNonExpired = true;
+
+    @Column(nullable = false)
+    private boolean accountNonLocked = true;
+
+    @Column(nullable = false)
+    private boolean credentialsNonExpired = true;
+
+
     @Column(nullable=false)
     private String password;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    private List<Role> roles;
+
+    private List<UUID> physicalExaminationIds;
+    private List<UUID> haematologicalTestIds;
+    private List<UUID> bloodPressureAndPulseIds;
+    private List<UUID> finalDonorEvaluationIds;
+    private List<UUID> collectionOfficerIds;
+    private List<UUID> meetingIds;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -47,6 +81,65 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<UserRole> roles;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles
+                .stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return accountNonExpired;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return accountNonLocked;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return credentialsNonExpired;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public boolean isAdmin() {
+        return this.roles.contains(Role.ADMIN);
+    }
+
+    public boolean hasCounselorLabTechOrOrganizerRole() {
+        return !this.roles.contains(Role.COUNSELOR)
+                && !this.roles.contains(Role.LAB_TECHNICIAN)
+                && !this.roles.contains(Role.ORGANIZER);
+    }
+
+
+    public boolean isOrganizer() {
+        return this.roles.contains(Role.ORGANIZER);
+    }
+
+    public boolean isAssignedToCenter() {
+        return this.centerId != null;
+    }
+
+    public boolean isZoneAdmin() {
+        return this.zoneId != null && this.roles.contains(Role.ADMIN);
+    }
+
+
+    public String fullName() {
+        return this.firstName + " " + this.middleName + " " + this.lastName;
+    }
+
 }
