@@ -27,13 +27,13 @@ public class RegionController {
         return regionService.regionExists(regionId);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<Map<String, String>> createRegion(@Valid @RequestBody CreateRegionDTO createRegionDTO) {
-        Map<String, String> response = new HashMap<>();
+    @PostMapping("add")
+    public ResponseEntity<Map<String, Object>> createRegion(@Valid @RequestBody CreateRegionDTO createRegionDTO) {
+        Map<String, Object> response = new HashMap<>();
 
         try {
-            regionService.create(createRegionDTO);
-            response.put("detail","Region added successfully");
+            UUID regionId = regionService.create(createRegionDTO);
+            response.put("regionId",regionId);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (ConflictException e) {
             response.putAll(e.getErrorMessages());

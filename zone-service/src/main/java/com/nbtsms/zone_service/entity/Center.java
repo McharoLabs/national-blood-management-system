@@ -32,5 +32,4 @@ public class Center {
     @JoinColumn(nullable = false)
     private Region region;
 
-    private List<UUID> staff = new ArrayList<>();
 }

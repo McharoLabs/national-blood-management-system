@@ -1,6 +1,6 @@
 package com.nbtsms.zone_service.config;
 
-import com.management.nationalblood.shared.utils.JWTValidator;
+import com.nbtsms.zone_service.utils.JWTValidator;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -61,7 +61,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Claims claims = jwtValidator.extractAllClaims(token);
                 String username = claims.getSubject();
 
-                String userId = claims.get("user", Map.class) != null ? (String) ((Map) claims.get("user")).get("id") : null;
+                String userId = claims.get("user", Map.class) != null ? (String) ((Map<?, ?>) claims.get("user")).get("id") : null;
 
                 @SuppressWarnings("unchecked")
                 List<String> roles = claims.get("roles", List.class);
@@ -70,7 +70,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                         .collect(Collectors.toList())
                         : Collections.emptyList();
-                System.out.println(authorities);
+
 
                 var authToken = new UsernamePasswordAuthenticationToken(
                         username,

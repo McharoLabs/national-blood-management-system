@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class ZoneAdminIdDTO {
-    @NotNull
-    private UUID adminId;
+public class ZoneIdDTO {
+    @NotNull(message = "Zone ID is mandatory")
+    private UUID zoneId;
 }

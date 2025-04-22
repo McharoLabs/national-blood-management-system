@@ -20,6 +20,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -37,6 +39,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.handlerExceptionResolver = handlerExceptionResolver;
     }
 
+    private static final List<String> PUBLIC_PATHS = Arrays.asList(
+            "/swagger-ui",
+            "/swagger-ui/",
+            "/swagger-ui.html",
+            "/api/v1/swagger-ui",
+            "/api/v1/swagger-ui/",
+            "/api/v1/swagger-ui/index.html",
+            "/v3/api-docs",
+            "/v3/api-docs/",
+            "/v3/api-docs/**",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/api-docs",
+            "/api-docs/**"
+    );
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -45,10 +63,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         try {
             final String authHeader = request.getHeader("Authorization");
-            String path = request.getServletPath();
-            System.out.println(path);
+            String servletPath = request.getServletPath();
 
-            if (request.getServletPath().startsWith(authEndpoint)) {
+            for (String path : PUBLIC_PATHS) {
+                if (servletPath.startsWith(path)) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+            }
+
+            if (servletPath.startsWith(authEndpoint)) {
                 filterChain.doFilter(request, response);
                 return;
             }

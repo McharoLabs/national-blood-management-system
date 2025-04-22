@@ -1,24 +1,27 @@
 package com.nbtsms.zone_service.service.impl;
 
+import com.nbtsms.zone_service.client.IdentityServiceClient;
 import com.nbtsms.zone_service.dto.CenterResponseDTO;
 import com.nbtsms.zone_service.dto.CreateCenterDTO;
 import com.nbtsms.zone_service.entity.Center;
 import com.nbtsms.zone_service.entity.Region;
+import com.nbtsms.zone_service.entity.Zone;
+import com.nbtsms.zone_service.exception.BadRequestException;
 import com.nbtsms.zone_service.exception.ConflictException;
 import com.nbtsms.zone_service.exception.NotFoundException;
 import com.nbtsms.zone_service.mapper.CenterMapper;
 import com.nbtsms.zone_service.repository.CenterRepository;
 import com.nbtsms.zone_service.repository.RegionRepository;
+import com.nbtsms.zone_service.repository.ZoneRepository;
 import com.nbtsms.zone_service.service.CenterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,14 +29,17 @@ public class CenterServiceImpl implements CenterService {
     private static final Logger logger = LoggerFactory.getLogger(CenterServiceImpl.class);
     private final CenterRepository centerRepository;
     private final RegionRepository regionRepository;
+    private final ZoneRepository zoneRepository;
 
-    public CenterServiceImpl(CenterRepository centerRepository, RegionRepository regionRepository) {
+    public CenterServiceImpl(CenterRepository centerRepository, RegionRepository regionRepository,
+                             ZoneRepository zoneRepository) {
         this.centerRepository = centerRepository;
         this.regionRepository = regionRepository;
+        this.zoneRepository = zoneRepository;
     }
 
     @Override
-    public UUID create(CreateCenterDTO createCenterDTO) throws ConflictException, NotFoundException {
+    public UUID create(CreateCenterDTO createCenterDTO) throws ConflictException, NotFoundException, BadRequestException {
         centerRepository.findByName(createCenterDTO.getName()).ifPresent(center -> {
             throw new ConflictException(Map.of("name", "Center with this name already exists."));
         });
@@ -44,11 +50,19 @@ public class CenterServiceImpl implements CenterService {
             throw new NotFoundException(Map.of("regionId", "Region not found"));
         }
 
-        Center center = new Center();
-        center.setName(createCenterDTO.getName());
-        center.setAddress(createCenterDTO.getAddress());
+        Center center = CenterMapper.toEntity(createCenterDTO);
         center.setRegion(region);
-        return centerRepository.save(center).getId();
+
+        region.getCenters().add(center);
+        Region savedRegion = regionRepository.save(region);
+
+        Center savedCenter = savedRegion.getCenters()
+                        .stream()
+                                .filter(c -> c.getName().equals(createCenterDTO.getName()))
+                                        .findFirst()
+                                                .orElseThrow(() -> new BadRequestException(Map.of("detail", "Center not saved as expected")));
+
+        return savedCenter.getId();
     }
 
     @Override
@@ -57,11 +71,9 @@ public class CenterServiceImpl implements CenterService {
     }
 
     @Override
-    public List<CenterResponseDTO> getCenters() {
-        List<Center> centers = centerRepository.findAll();
-        return centers.stream()
-                .map(CenterMapper::toResponse)
-                .collect(Collectors.toList());
+    public List<CenterResponseDTO> getCenters(UUID staffId) throws NotFoundException, BadRequestException {
+
+        return null;
     }
 
     @Override
@@ -70,4 +82,30 @@ public class CenterServiceImpl implements CenterService {
                 .orElseThrow(() -> new NotFoundException(Map.of("center", "Center not found")));
         return CenterMapper.toResponse(center);
     }
+
+    @Override
+    public Page<CenterResponseDTO> getAllCenterByZoneId(UUID zoneId, Pageable pageable) throws NotFoundException, BadRequestException {
+
+
+        Zone zone = zoneRepository.findById(zoneId).orElseThrow(() -> new NotFoundException(Map.of("detail", "Zone you are assigned to, not found")));
+
+        return centerRepository.findByRegionZoneId(zone.getId(), pageable)
+                .map(CenterMapper::toResponse);
+    }
+
+    @Override
+    public boolean centerBelongToZone(UUID zoneId, UUID centerId) {
+        Zone zone = zoneRepository.findById(zoneId).orElse(null);
+
+        if (zone == null) {
+            return false;
+        }
+
+        Set<Region> regions = zone.getRegions();
+
+        return regions.stream()
+                .flatMap(region -> region.getCenters().stream())
+                .anyMatch(center -> center.getId().equals(centerId));
+    }
+
 }

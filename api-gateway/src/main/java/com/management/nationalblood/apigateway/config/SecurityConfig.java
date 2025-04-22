@@ -21,7 +21,7 @@ public class SecurityConfig {
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity serverHttpSecurity) {
         serverHttpSecurity.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/eureka/**", "/api/v1/users/auth/**")
+                        .pathMatchers("/eureka/**", "/api/v1/identity/auth/**")
                         .permitAll()
                         .anyExchange()
                         .authenticated())

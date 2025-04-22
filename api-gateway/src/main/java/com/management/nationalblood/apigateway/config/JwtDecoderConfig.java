@@ -24,7 +24,6 @@ public class JwtDecoderConfig {
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
         RSAPublicKey publicKey = (RSAPublicKey) getPublicKey();
-        System.out.println("Public Key: " + publicKey);  // Debugging
         return NimbusReactiveJwtDecoder
                 .withPublicKey(publicKey)
                 .signatureAlgorithm(SignatureAlgorithm.RS512)

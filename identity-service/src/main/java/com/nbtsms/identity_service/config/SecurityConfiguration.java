@@ -1,7 +1,6 @@
 package com.nbtsms.identity_service.config;
 
 import com.nbtsms.identity_service.service.impl.UserDetailsServiceImpl;
-import com.nbtsms.identity_service.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,7 +37,15 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers(authEndpoint + "/**").permitAll()
+                        .requestMatchers(
+                                authEndpoint + "/**",
+                                "/swagger-ui/**",
+                                "/identity-service-swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/swagger-ui.html",
+                                "/api-docs/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionManagement -> sessionManagement

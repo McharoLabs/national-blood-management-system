@@ -1,4 +1,4 @@
-package com.management.nationalblood.shared.discoveryserver.config;
+package com.management.nationalblood.discoveryserver.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

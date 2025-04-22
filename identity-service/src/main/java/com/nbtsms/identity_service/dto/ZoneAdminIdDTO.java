@@ -7,6 +7,6 @@ import java.util.UUID;
 
 @Data
 public class ZoneAdminIdDTO {
-    @NotNull
+    @NotNull(message = "Admin Id is mandatory")
     private UUID adminId;
 }

@@ -11,7 +11,7 @@ public class FieldErrorResponse {
 
     @Schema(
             description = "A map of field names to their respective error messages.",
-            example = "{ \"name\": \"Region with this name already exists.\", \"zone\": \"Zone not found.\" }"
+            example = "{ \"name\": \"message\", \"zone\": \"Message\" }"
     )
     private Map<String, String> errors;
 }

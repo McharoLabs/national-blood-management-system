@@ -6,6 +6,8 @@ import com.nbtsms.identity_service.dto.UserDTO;
 import com.nbtsms.identity_service.exception.BadRequestException;
 import com.nbtsms.identity_service.exception.ConflictException;
 import com.nbtsms.identity_service.exception.NotFoundException;
+import com.nbtsms.identity_service.openapi.DetailMessageResponse;
+import com.nbtsms.identity_service.openapi.FieldErrorResponse;
 import com.nbtsms.identity_service.service.impl.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@Tag(name = "Staffs", description = "Endpoints related to staffs")
 @RestController
 @RequestMapping
 public class UserController {
@@ -46,13 +50,7 @@ public class UserController {
                     description = "User created successfully",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(
-                                    example = """
-                                        {
-                                          "detail": "Staff added successfully."
-                                        }
-                                    """
-                            )
+                            schema = @Schema(implementation = DetailMessageResponse.class)
                     )
             ),
             @ApiResponse(
@@ -60,15 +58,7 @@ public class UserController {
                     description = "Validation failed or bad request",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(
-                                    implementation = Map.class,
-                                    example = """
-                                        {
-                                          "email": "Email is required",
-                                          "password": "Password must be at least 8 characters"
-                                        }
-                                    """
-                            )
+                            schema = @Schema(implementation = FieldErrorResponse.class)
                     )
             ),
             @ApiResponse(
@@ -76,14 +66,7 @@ public class UserController {
                     description = "User already exists (conflict)",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(
-                                    implementation = Map.class,
-                                    example = """
-                                        {
-                                          "email": "A user with this email already exists"
-                                        }
-                                    """
-                            )
+                            schema = @Schema(implementation = DetailMessageResponse.class)
                     )
             ),
             @ApiResponse(
@@ -91,13 +74,7 @@ public class UserController {
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(
-                                    example = """
-                                        {
-                                          "detail": "Something went wrong on the server"
-                                        }
-                                    """
-                            )
+                            schema = @Schema(implementation = DetailMessageResponse.class)
                     )
             )
     })
@@ -105,8 +82,8 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            userService.create(userDTO);
-            response.put("detail", "Staff added successfully");
+            UUID userId = userService.create(userDTO);
+            response.put("userId", userId);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (ConflictException e) {
             response.putAll(e.getErrorMessages());
@@ -202,7 +179,7 @@ public class UserController {
         }
     }
 
-    @PatchMapping("{userId}/assign-role")
+    @PatchMapping("{userId}/assign-roles")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
     @Operation(
             summary = "Assign role to user",
@@ -214,13 +191,7 @@ public class UserController {
                     description = "Role assigned successfully",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(
-                                    example = """
-                                        {
-                                            "message": "Role assigned successfully"
-                                        }
-                                """
-                            )
+                            schema = @Schema(implementation = DetailMessageResponse.class)
                     )
             ),
             @ApiResponse(
@@ -246,7 +217,7 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
         try {
             userService.assignRole(assignRole, userId);
-            response.put("message", "Role assigned successfully");
+            response.put("detail", "Role assigned successfully");
             return ResponseEntity.ok(response);
         } catch (BadRequestException e) {
             response.putAll(e.getErrorMessages());
@@ -260,5 +231,31 @@ public class UserController {
         }
     }
 
+    @GetMapping("{staffId}/exists")
+    @Operation(
+            summary = "Check if staff exists",
+            description = "Checks if staff exists in the system"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "If true staff exists, otherwise not found",
+                    content = @Content(
+                            schema = @Schema(
+                                    example = "true"
+                            )
+                    )
+            )
+    })
+    public boolean staffExists(@PathVariable UUID staffId) {
+        return userService.staffExists(staffId);
+    }
+
+
+    @GetMapping("{staffId}/zone-id")
+    @PreAuthorize("hasAuthority('ROLE_INTERNAL')")
+    public UUID getZoneId(@PathVariable UUID staffId) {
+        return userService.getZoneId(staffId);
+    }
 
 }

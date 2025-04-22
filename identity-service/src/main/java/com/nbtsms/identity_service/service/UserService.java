@@ -13,9 +13,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserService {
-    void create(CreateUserDTO createUserDTO) throws ConflictException, BadRequestException;
+    UUID create(CreateUserDTO createUserDTO) throws ConflictException, BadRequestException;
     List<UserDTO> getUsers();
     List<UserDTO> getAllAdmin();
     Optional<User> getUser(UUID id);
     void assignRole(AssignRole assignRole, UUID userId) throws NotFoundException, BadRequestException;
+    boolean staffExists(UUID staffId);
+    UUID getZoneId(UUID staffId);
 }

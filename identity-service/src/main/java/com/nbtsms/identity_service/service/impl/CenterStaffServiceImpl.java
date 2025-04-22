@@ -1,6 +1,5 @@
 package com.nbtsms.identity_service.service.impl;
 
-import com.management.nationalblood.shared.dto.CenterResponseDTO;
 import com.nbtsms.identity_service.client.ZoneServiceClient;
 import com.nbtsms.identity_service.entity.User;
 import com.nbtsms.identity_service.enums.Role;
@@ -10,12 +9,15 @@ import com.nbtsms.identity_service.exception.NotFoundException;
 import com.nbtsms.identity_service.repository.UserRepository;
 import com.nbtsms.identity_service.service.CenterStaffService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 @Service
+@Transactional(isolation = Isolation.REPEATABLE_READ)
 public class CenterStaffServiceImpl implements CenterStaffService {
     private final UserRepository userRepository;
     private final ZoneServiceClient zoneServiceClient;
@@ -36,6 +38,9 @@ public class CenterStaffServiceImpl implements CenterStaffService {
 
 
         boolean centerExists = zoneServiceClient.centerExists(centerId);
+
+
+
         boolean zoneExists = zoneServiceClient.zoneExists(admin.getZoneId());
 
 
@@ -48,9 +53,9 @@ public class CenterStaffServiceImpl implements CenterStaffService {
             throw new NotFoundException(Map.of("detail", "Zone not found"));
         }
 
-        CenterResponseDTO centerResponseDTO = zoneServiceClient.fetchCenter(centerId);
+        boolean centerAssociatedWithZone = zoneServiceClient.isCenterAssociatedWithZone(admin.getZoneId(), centerId);
 
-        if (!admin.getZoneId().equals(centerResponseDTO.getRegion().getZone().getId())) {
+        if (!centerAssociatedWithZone) {
             throw new BadRequestException(Map.of("centerId", "This center does not belong to your zone."));
         }
 
@@ -65,7 +70,7 @@ public class CenterStaffServiceImpl implements CenterStaffService {
             throw new BadRequestException(Map.of("staffId", "Staff is already assigned to a center."));
         }
 
-        staff.setCenterId(centerResponseDTO.getId());
+        staff.setCenterId(centerId);
         userRepository.save(staff);
     }
 
@@ -83,9 +88,9 @@ public class CenterStaffServiceImpl implements CenterStaffService {
             throw new NotFoundException(Map.of("centerId", "Center not found"));
         }
 
-        CenterResponseDTO centerResponseDTO = zoneServiceClient.fetchCenter(centerId);
+        boolean centerAssociatedWithZone = zoneServiceClient.isCenterAssociatedWithZone(admin.getZoneId(), centerId);
 
-        if (!admin.getZoneId().equals(centerResponseDTO.getRegion().getZone().getId())) {
+        if (!centerAssociatedWithZone) {
             throw new BadRequestException(Map.of("centerId", "This center does not belong to your zone."));
         }
 

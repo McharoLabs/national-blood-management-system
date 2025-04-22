@@ -1,6 +1,5 @@
 package com.nbtsms.zone_service.controller;
 
-import com.nbtsms.zone_service.dto.AssignZoneAdminDTO;
 import com.nbtsms.zone_service.dto.CreateZoneDTO;
 import com.nbtsms.zone_service.dto.ZoneResponseDTO;
 import com.nbtsms.zone_service.exception.ConflictException;
@@ -15,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("")
+@RequestMapping("zone")
 public class ZoneController {
 
     private final ZoneServiceImpl zoneService;
@@ -25,7 +24,7 @@ public class ZoneController {
         this.zoneService = zoneService;
     }
 
-    @PostMapping("/create")
+    @PostMapping("create")
     public ResponseEntity<Map<String, Object>> createZone(@Valid @RequestBody CreateZoneDTO createZoneDTO) {
         Map<String, Object> response = new HashMap<>();
 
@@ -42,9 +41,16 @@ public class ZoneController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ROLE_INTERNAL')")
     @GetMapping("{zoneId}/exists")
     public boolean zoneExists(@PathVariable("zoneId") UUID zoneId) {
         return zoneService.zoneExists(zoneId);
+    }
+
+    @GetMapping("{zoneId}/zone-id")
+    @PreAuthorize("hasAuthority('ROLE_INTERNAL')")
+    public UUID getZoneIdById(@PathVariable UUID zoneId) {
+        return zoneService.getZoneIdById(zoneId);
     }
 
     @PreAuthorize("hasAuthority('ROLE_USER')")
@@ -80,10 +86,5 @@ public class ZoneController {
         }
     }
 
-    // fallback
-    public ResponseEntity<Map<String, String>> fallbackAssignAdmin(UUID zoneId, AssignZoneAdminDTO adminDTO, Throwable throwable) {
-        Map<String, String> fallbackResponse = new HashMap<>();
-        fallbackResponse.put("detail", "Oops! Service is unavailable. Please try again later.");
-        return new ResponseEntity<>(fallbackResponse, HttpStatus.SERVICE_UNAVAILABLE);
-    }
+
 }

@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void create(CreateUserDTO createUserDTO) throws ConflictException, BadRequestException {
+    public UUID create(CreateUserDTO createUserDTO) throws ConflictException, BadRequestException {
         Optional<User> existingUserByEmail = userRepository.findByEmail(createUserDTO.getEmail());
         Optional<User> existingUserByPhoneNumber = userRepository.findByPhoneNumber(createUserDTO.getPhoneNumber());
         Map<String, String> errors = new HashMap<>();
@@ -55,7 +55,8 @@ public class UserServiceImpl implements UserService {
         user.setRoles(List.of(Role.USER));
 
         try {
-            userRepository.save(user);
+            User savedUser = userRepository.save(user);
+            return savedUser.getId();
         } catch (Exception e) {
             logger.error("An unexpected error occurred.", e);
             throw e;
@@ -119,6 +120,18 @@ public class UserServiceImpl implements UserService {
 
         user.setRoles(new ArrayList<>(incomingRoles));
         userRepository.save(user);
+    }
+
+    @Override
+    public boolean staffExists(UUID staffId) {
+        return userRepository.findById(staffId).isPresent();
+    }
+
+    @Override
+    public UUID getZoneId(UUID staffId) {
+        return userRepository.findById(staffId)
+                .map(User::getZoneId)
+                .orElse(null);
     }
 
 }

@@ -6,6 +6,7 @@ import com.nbtsms.identity_service.exception.BadRequestException;
 import com.nbtsms.identity_service.exception.ConflictException;
 import com.nbtsms.identity_service.exception.NotFoundException;
 import com.nbtsms.identity_service.openapi.DetailMessageResponse;
+import com.nbtsms.identity_service.repository.UserRepository;
 import com.nbtsms.identity_service.service.impl.CenterStaffServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,10 +17,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -70,7 +68,8 @@ public class CenterStaffController {
                     )
             ),
     })
-    public ResponseEntity<Map<String, Object>> addStaffToCenter(@PathVariable UUID centerId, @Valid CenterStaffDTO centerStaffDTO) {
+    public ResponseEntity<Map<String, Object>> addStaffToCenter(@PathVariable UUID centerId, @Valid @RequestBody CenterStaffDTO centerStaffDTO) {
+
         Map<String, Object> response = new HashMap<>();
 
         UUID adminId = AuthUtil.getAuthenticatedUserId();

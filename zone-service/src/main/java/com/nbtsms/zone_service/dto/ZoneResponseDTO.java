@@ -15,6 +15,6 @@ import java.util.UUID;
 public class ZoneResponseDTO {
     private UUID id;
     private String name;
-    private Set<UUID> admin;
+    private String address;
     private Set<RegionResponseDTO> regions;
 }

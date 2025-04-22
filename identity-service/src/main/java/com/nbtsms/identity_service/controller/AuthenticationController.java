@@ -61,7 +61,7 @@ public class AuthenticationController {
 
         try {
             JwtAuthenticationResponseDTO responseDTO = authenticationService.signIn(signInRequestDTO);
-            response.put("token", responseDTO);
+            response.put("tokens", responseDTO);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (NotFoundException e) {
             response.putAll(e.getErrorMessages());

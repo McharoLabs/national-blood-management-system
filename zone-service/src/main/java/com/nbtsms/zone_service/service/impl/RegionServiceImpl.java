@@ -4,6 +4,7 @@ import com.nbtsms.zone_service.dto.CreateRegionDTO;
 import com.nbtsms.zone_service.dto.RegionResponseDTO;
 import com.nbtsms.zone_service.entity.Region;
 import com.nbtsms.zone_service.entity.Zone;
+import com.nbtsms.zone_service.exception.BadRequestException;
 import com.nbtsms.zone_service.exception.ConflictException;
 import com.nbtsms.zone_service.exception.NotFoundException;
 import com.nbtsms.zone_service.mapper.RegionMapper;
@@ -33,7 +34,7 @@ public class RegionServiceImpl implements RegionService {
     }
 
     @Override
-    public UUID create(CreateRegionDTO createRegionDTO) throws ConflictException, NotFoundException {
+    public UUID create(CreateRegionDTO createRegionDTO) throws ConflictException, NotFoundException, BadRequestException {
         regionRepository.findByName(createRegionDTO.getName()).ifPresent(region -> {
             throw new ConflictException(Map.of("name", "Region with this name already exists."));
         });
@@ -46,10 +47,19 @@ public class RegionServiceImpl implements RegionService {
 
         if (!errors.isEmpty()) throw new NotFoundException(errors);
 
-        Region region = new Region();
-        region.setName(createRegionDTO.getName());
+        Region region = RegionMapper.toEntity(createRegionDTO);
+
+        zone.getRegions().add(region);
         region.setZone(zone);
-        return regionRepository.save(region).getId();
+        Zone savedZone = zoneRepository.save(zone);
+
+        Region savedRegion = savedZone.getRegions()
+                .stream()
+                .filter(r -> r.getName().equals(createRegionDTO.getName()))
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException(Map.of("detail", "Region not saved as expected")));
+
+        return savedRegion.getId();
     }
 
     @Override

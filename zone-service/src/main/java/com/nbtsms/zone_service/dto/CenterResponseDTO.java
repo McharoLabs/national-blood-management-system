@@ -16,5 +16,4 @@ public class CenterResponseDTO {
     private UUID id;
     private String name;
     private String address;
-    private RegionResponseDTO region;
 }

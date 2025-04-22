@@ -35,8 +35,7 @@ public class ZoneServiceImpl implements ZoneService {
             throw new ConflictException(Map.of("name", "Zone with this name already exists."));
         });
 
-        Zone zone = new Zone();
-        zone.setName(createZoneDTO.getName());
+        Zone zone = ZoneMapper.toEntity(createZoneDTO);
         return zoneRepository.save(zone).getId();
     }
 
@@ -61,5 +60,12 @@ public class ZoneServiceImpl implements ZoneService {
                 .stream()
                 .map(ZoneMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public UUID getZoneIdById(UUID zoneId) {
+        return zoneRepository.findById(zoneId)
+                .map(Zone::getId)
+                .orElse(null);
     }
 }

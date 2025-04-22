@@ -1,4 +1,4 @@
-package com.management.nationalblood.shared.utils;
+package com.management.nationalblood.meeting.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

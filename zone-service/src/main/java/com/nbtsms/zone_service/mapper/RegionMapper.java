@@ -4,6 +4,7 @@ import com.nbtsms.zone_service.dto.CreateRegionDTO;
 import com.nbtsms.zone_service.dto.RegionResponseDTO;
 import com.nbtsms.zone_service.entity.Region;
 
+
 public class RegionMapper {
     public static Region toEntity(CreateRegionDTO createRegionDTO) {
         Region region = new Region();
@@ -16,7 +17,6 @@ public class RegionMapper {
 
         regionResponseDTO.setId(region.getId());
         regionResponseDTO.setName(region.getName());
-        regionResponseDTO.setZone(ZoneMapper.toResponse(region.getZone()));
 
         return regionResponseDTO;
     }

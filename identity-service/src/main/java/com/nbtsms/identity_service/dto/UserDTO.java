@@ -23,6 +23,8 @@ public class UserDTO {
     private String email;
     private String phoneNumber;
     private List<Role> roles;
+    private UUID zoneId;
+    private UUID centerId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -22,9 +22,6 @@ public class CenterMapper {
         centerResponseDTO.setName(center.getName());
         centerResponseDTO.setAddress(center.getAddress());
 
-        centerResponseDTO.setRegion(RegionMapper.toResponse(center.getRegion()));
-
-
         return centerResponseDTO;
     }
 }

@@ -58,7 +58,6 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private boolean credentialsNonExpired = true;
 
-
     @Column(nullable=false)
     private String password;
 

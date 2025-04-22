@@ -13,4 +13,5 @@ public interface ZoneService {
     boolean zoneExists(UUID id);
     ZoneResponseDTO getZone(UUID id) throws NotFoundException;
     List<ZoneResponseDTO> getZones();
+    UUID getZoneIdById(UUID zoneId);
 }

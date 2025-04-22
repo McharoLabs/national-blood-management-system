@@ -6,7 +6,6 @@ import com.nbtsms.zone_service.dto.ZoneResponseDTO;
 import com.nbtsms.zone_service.entity.Zone;
 
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class ZoneMapper {
@@ -29,7 +28,6 @@ public class ZoneMapper {
                         .map(RegionMapper::toResponse)
                         .collect(Collectors.toSet());
 
-        zoneResponseDTO.setAdmin(zone.getAdminId());
         zoneResponseDTO.setRegions(regionResponseDTOs);
 
         return zoneResponseDTO;

@@ -16,6 +16,8 @@ public class UserMapper {
         dto.setPhoneNumber(user.getPhoneNumber());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
+        dto.setZoneId(user.getZoneId());
+        dto.setCenterId(user.getCenterId());
 
         return dto;
     }

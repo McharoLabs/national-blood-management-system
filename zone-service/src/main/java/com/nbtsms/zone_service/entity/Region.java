@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -29,5 +31,5 @@ public class Region {
     private Zone zone;
 
     @OneToMany(mappedBy = "region", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Center> centers;
+    private Set<Center> centers =new HashSet<>();
 }
