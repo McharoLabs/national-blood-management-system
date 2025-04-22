@@ -1,11 +1,12 @@
-package com.management.nationalblood.meeting.config;
+package com.nbts.management.donor_service.config;
 
-import com.management.nationalblood.meeting.utils.JWTValidator;
+import com.nbts.management.donor_service.utils.JWTValidator;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +28,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JWTValidator jwtValidator;
 
+
+    private static final List<String> PUBLIC_PATHS = List.of(
+            "/public",
+            "/public/",
+            "/error",
+            "/swagger-ui",
+            "/v3/api-docs",
+            "/auth/"
+    );
+
     public JwtAuthenticationFilter(PublicKey publicKey) {
         this.jwtValidator = new JWTValidator(publicKey);
     }
@@ -36,16 +47,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest httpRequest,
             @NonNull HttpServletResponse httpResponse,
             @NonNull FilterChain chain
-    )
-            throws ServletException, IOException {
+    ) throws ServletException, IOException {
 
-        String requestUri = httpRequest.getRequestURI();
+        String servletPath = httpRequest.getServletPath();
 
-        // Skip JWT filter for public endpoints
-        if (requestUri.equals("/public") || requestUri.startsWith("/public/") || requestUri.startsWith("/error")) {
-            chain.doFilter(httpRequest, httpResponse);
-            return;
+        for (String path : PUBLIC_PATHS) {
+            if (servletPath.startsWith(path)) {
+                chain.doFilter(httpRequest, httpResponse);
+                return;
+            }
         }
+
 
         final String authHeader = httpRequest.getHeader("Authorization");
 
@@ -61,16 +73,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Claims claims = jwtValidator.extractAllClaims(token);
                 String username = claims.getSubject();
 
-                String userId = claims.get("user", Map.class) != null ? (String) ((Map<?, ?>) claims.get("user")).get("id") : null;
+                String userId = claims.get("user", Map.class) != null
+                        ? (String) ((Map<?, ?>) claims.get("user")).get("id")
+                        : null;
 
                 @SuppressWarnings("unchecked")
                 List<String> roles = claims.get("roles", List.class);
+
                 Collection<GrantedAuthority> authorities = roles != null
                         ? roles.stream()
                         .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                         .collect(Collectors.toList())
                         : Collections.emptyList();
-
 
                 var authToken = new UsernamePasswordAuthenticationToken(
                         username,

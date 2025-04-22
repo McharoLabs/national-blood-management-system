@@ -21,7 +21,6 @@
         <module>zone-service</module>
         <module>discovery-server</module>
         <module>api-gateway</module>
-        <module>shared</module>
         <module>meeting-service</module>
     </modules>
 

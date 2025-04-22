@@ -1,13 +1,11 @@
 package com.nbts.management.donor_service.exception;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,17 +36,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getErrorMessages(), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(JsonProcessingException.class)  // Handle JSON parsing exceptions
-    public ResponseEntity<Map<String, String>> handleJsonProcessingException(JsonProcessingException ex) {
-        Map<String, String> errorMessages = new HashMap<>();
-        errorMessages.put("error", ex.getMessage());
-        return new ResponseEntity<>(errorMessages, HttpStatus.BAD_REQUEST);
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
         Map<String, String> errorMessages = new HashMap<>();
-        errorMessages.put("detail", ex.getMessage());
+        errorMessages.put("error", ex.getMessage());
         return new ResponseEntity<>(errorMessages, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

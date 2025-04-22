@@ -51,6 +51,7 @@ public class DonorMapper {
                 .educationLevel(donor.getEducationLevel())
                 .occupation(donor.getOccupation())
                 .lastDonation(donor.getLastDonation())
+                .createdAt(donor.getCreatedAt())
                 .build();
     }
 }

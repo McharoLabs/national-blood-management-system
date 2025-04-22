@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -33,5 +34,6 @@ public class DonorResponseDTO {
     private String address;
     private String educationLevel;
     private String occupation;
-    private String lastDonation;
+    private LocalDateTime lastDonation;
+    private LocalDateTime createdAt;
 }

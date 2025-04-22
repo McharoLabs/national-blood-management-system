@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -21,6 +21,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "donors")
 public class Donor {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -77,9 +78,13 @@ public class Donor {
     private String occupation;
 
     @Column(nullable = true)
-    private String lastDonation;
+    private LocalDateTime lastDonation;
 
-    @OneToMany(mappedBy = "donor", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    private Set<Questionnaire> questionnaires;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }
