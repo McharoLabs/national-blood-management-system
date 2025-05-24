@@ -14,6 +14,8 @@ import com.nbtsms.identity_service.repository.UserRepository;
 import com.nbtsms.identity_service.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -64,28 +66,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDTO> getUsers() {
-        List<User> users = userRepository.findAll();
-
-        return users
-                .stream()
-                .filter(user -> user
-                        .getRoles()
-                        .stream()
-                        .noneMatch(role -> role == Role.ADMIN || role == Role.SUPER_ADMIN))
-                .map(UserMapper::toResponse)
-                .collect(Collectors.toList());
+    public Page<UserDTO> getUsers(String name, Pageable pageable) {
+        return userRepository.findAllStaffs(name, List.of(Role.COUNSELOR, Role.LAB_TECHNICIAN, Role.ADMIN, Role.USER), pageable)
+                .map(UserMapper::toResponse);
     }
 
     @Override
-    public List<UserDTO> getAllAdmin() {
-        List<User> users = userRepository.findAll();
+    public Page<UserDTO> getAllAdmin(String name, Pageable pageable) {
 
-        return users
-                .stream()
-                .filter(user -> user.getRoles().contains(Role.ADMIN))
-                .map(UserMapper::toResponse)
-                .collect(Collectors.toList());
+        return userRepository.findStaffsByRoles(name, List.of(Role.ADMIN), pageable)
+                .map(UserMapper::toResponse);
     }
 
     @Override
@@ -108,7 +98,7 @@ public class UserServiceImpl implements UserService {
         Set<Role> incomingRoles = new HashSet<>(assignRole.getRoles());
         incomingRoles.add(Role.USER);
 
-        if (incomingRoles.contains(Role.SUPER_ADMIN)) {
+        if (incomingRoles.contains(Role.SUPER_USER)) {
             errors.put("roles", "Cannot assign super admin role.");
             throw new BadRequestException(errors);
         }

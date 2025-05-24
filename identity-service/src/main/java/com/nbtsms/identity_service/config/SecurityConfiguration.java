@@ -1,12 +1,10 @@
 package com.nbtsms.identity_service.config;
 
-import com.nbtsms.identity_service.service.impl.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,51 +16,64 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.io.InputStream;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
-    private final UserDetailsServiceImpl userDetailsService;
-    private final JwtAuthenticationFilter authenticationFilter;
 
-    @Value("${auth.endpoint}")
-    private String authEndpoint;
+    @Value("${jwt.public.key.path}")
+    private Resource publicKeyResource;
 
-    public SecurityConfiguration(UserDetailsServiceImpl userDetailsService, JwtAuthenticationFilter authenticationFilter) {
-        this.userDetailsService = userDetailsService;
-        this.authenticationFilter = authenticationFilter;
+    @Bean
+    public PublicKey getPublicKey() {
+        try (InputStream inputStream = publicKeyResource.getInputStream()) {
+            byte[] keyBytes = inputStream.readAllBytes();
+            String publicKeyPEM = new String(keyBytes)
+                    .replace("-----BEGIN PUBLIC KEY-----", "")
+                    .replace("-----END PUBLIC KEY-----", "")
+                    .replaceAll("\\s", "");
+
+            byte[] decoded = Base64.getDecoder().decode(publicKeyPEM);
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decoded);
+            return KeyFactory.getInstance("RSA").generatePublic(keySpec);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load public key", e);
+        }
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.csrf(AbstractHttpConfigurer::disable)
+    public JwtAuthenticationFilter jwtAuthenticationFilter(PublicKey publicKey) {
+        return new JwtAuthenticationFilter(publicKey);
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(
-                                authEndpoint + "/**",
-                                "/swagger-ui/**",
-                                "/identity-service-swagger-ui/**",
+                                "/public/**",
+                                "/error",
+                                "/auth/**",
                                 "/v3/api-docs/**",
+                                "/swagger-ui/**",
                                 "/swagger-resources/**",
                                 "/swagger-ui.html",
                                 "/api-docs/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(sessionManagement -> sessionManagement
+                .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return httpSecurity.build();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-        return authenticationProvider;
+        return http.build();
     }
 
     @Bean

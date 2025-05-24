@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum Role {
     USER,
-    SUPER_ADMIN,
+    SUPER_USER,
     ADMIN,
     COUNSELOR,
     LAB_TECHNICIAN,

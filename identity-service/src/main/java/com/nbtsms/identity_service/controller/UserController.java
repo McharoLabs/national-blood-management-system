@@ -2,35 +2,35 @@ package com.nbtsms.identity_service.controller;
 
 import com.nbtsms.identity_service.dto.AssignRole;
 import com.nbtsms.identity_service.dto.CreateUserDTO;
+import com.nbtsms.identity_service.dto.IdentityResponseDTO;
 import com.nbtsms.identity_service.dto.UserDTO;
-import com.nbtsms.identity_service.exception.BadRequestException;
-import com.nbtsms.identity_service.exception.ConflictException;
-import com.nbtsms.identity_service.exception.NotFoundException;
-import com.nbtsms.identity_service.openapi.DetailMessageResponse;
-import com.nbtsms.identity_service.openapi.FieldErrorResponse;
 import com.nbtsms.identity_service.service.impl.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springdoc.api.ErrorMessage;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @Tag(name = "Staffs", description = "Endpoints related to staffs")
 @RestController
-@RequestMapping
+@RequestMapping("")
 public class UserController {
     private final UserServiceImpl userService;
 
@@ -38,8 +38,8 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("create")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPER_ADMIN')")
+    @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPER_USER')")
     @Operation(
             summary = "Create a new user",
             description = "Allows admin or super admin to create a new user account."
@@ -50,7 +50,7 @@ public class UserController {
                     description = "User created successfully",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DetailMessageResponse.class)
+                            schema = @Schema(implementation = IdentityResponseDTO.class)
                     )
             ),
             @ApiResponse(
@@ -58,7 +58,7 @@ public class UserController {
                     description = "Validation failed or bad request",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorResponse.class)
+                            schema = @Schema(implementation = ErrorMessage.class)
                     )
             ),
             @ApiResponse(
@@ -66,7 +66,7 @@ public class UserController {
                     description = "User already exists (conflict)",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DetailMessageResponse.class)
+                            schema = @Schema(implementation = ErrorMessage.class)
                     )
             ),
             @ApiResponse(
@@ -74,31 +74,23 @@ public class UserController {
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DetailMessageResponse.class)
+                            schema = @Schema(implementation = ErrorMessage.class)
                     )
             )
     })
-    public ResponseEntity<Map<String, Object>> create(@Valid @RequestBody CreateUserDTO userDTO) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<IdentityResponseDTO<Map<String, Object>>> create(
+            @Valid @RequestBody CreateUserDTO userDTO,
+            HttpServletRequest request
+    ) {
 
-        try {
-            UUID userId = userService.create(userDTO);
-            response.put("userId", userId);
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (ConflictException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-        } catch (BadRequestException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        UUID userId = userService.create(userDTO);
+        IdentityResponseDTO<Map<String, Object>> response = IdentityResponseDTO.ok(Map.of("userId", userId), "New user created successfully", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+
     }
 
-    @GetMapping("all-users")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
     @Operation(
             summary = "Get all users",
             description = "Retrieve the list of all users"
@@ -110,7 +102,7 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             array = @ArraySchema(
-                                    schema = @Schema(implementation = UserDTO.class)
+                                    schema = @Schema(implementation = IdentityResponseDTO.class)
                             )
                     )
             ),
@@ -119,27 +111,25 @@ public class UserController {
                     description = "Internal server error.",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(
-                                    example = """
-                    {
-                      "detail": "Something went wrong"
-                    }
-                """
-                            )
+                            schema = @Schema(implementation = ErrorMessage.class)
                     )
             )
     })
-    public ResponseEntity<?> getAllUsers() {
-        try {
-            List<UserDTO> userDTOList = userService.getUsers();
-            return ResponseEntity.ok(userDTOList);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("detail", e.getMessage()));
-        }
+    public ResponseEntity<IdentityResponseDTO<Page<UserDTO>>> getAllUsers(
+            HttpServletRequest request,
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<UserDTO> userPage =  userService.getUsers(name, pageable);
+        IdentityResponseDTO<Page<UserDTO>> response = IdentityResponseDTO.ok(userPage, "Users fetched successfully", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("all-admin")
-    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN')")
+    @GetMapping("admins")
+    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_USER')")
     @Operation(
             summary = "Get all admin",
             description = "Retrieve the list of all admin"
@@ -151,7 +141,7 @@ public class UserController {
                     content = @Content(
                             mediaType = "application/json",
                             array = @ArraySchema(
-                                    schema = @Schema(implementation = UserDTO.class)
+                                    schema = @Schema(implementation = IdentityResponseDTO.class)
                             )
                     )
             ),
@@ -160,26 +150,26 @@ public class UserController {
                     description = "Internal server error.",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    name = "InternalError",
-                                    summary = "Server error response",
-                                    value = "{\"detail\": \"Internal server error occurred.\"}"
-                            ),
-                            schema = @Schema(implementation = Map.class)
+                            schema = @Schema(implementation = ErrorMessage.class)
                     )
             )
 
     })
-    public ResponseEntity<?> getAllAdmin() {
-        try {
-            List<UserDTO> userDTOList = userService.getAllAdmin();
-            return ResponseEntity.ok(userDTOList);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("detail", e.getMessage()));
-        }
+    public ResponseEntity<IdentityResponseDTO<Page<UserDTO>>> getAllAdmin(
+            HttpServletRequest request,
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<UserDTO> allAdmin = userService.getAllAdmin(name, pageable);
+        IdentityResponseDTO<Page<UserDTO>> response = IdentityResponseDTO.ok(allAdmin, "Admins fetched successfully", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
     }
 
-    @PatchMapping("{userId}/assign-roles")
+    @PatchMapping("{userId}/roles")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
     @Operation(
             summary = "Assign role to user",
@@ -191,44 +181,42 @@ public class UserController {
                     description = "Role assigned successfully",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DetailMessageResponse.class)
+                            schema = @Schema(implementation = IdentityResponseDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "400",
                     description = "Bad request: invalid or duplicate role",
-                    content = @Content(mediaType = "application/json")
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorMessage.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "User not found",
-                    content = @Content(mediaType = "application/json")
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorMessage.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Internal server error",
-                    content = @Content(mediaType = "application/json")
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorMessage.class)
+                    )
             )
     })
-    public ResponseEntity<Map<String, Object>> assignRole(
+    public ResponseEntity<IdentityResponseDTO<Map<String, Object>>> assignRole(
             @PathVariable UUID userId,
-            @Valid @RequestBody AssignRole assignRole) {
-
-        Map<String, Object> response = new HashMap<>();
-        try {
-            userService.assignRole(assignRole, userId);
-            response.put("detail", "Role assigned successfully");
-            return ResponseEntity.ok(response);
-        } catch (BadRequestException e) {
-            response.putAll(e.getErrorMessages());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
+            @Valid @RequestBody AssignRole assignRole,
+            HttpServletRequest request
+    ) {
+        userService.assignRole(assignRole, userId);
+        IdentityResponseDTO<Map<String, Object>> response = IdentityResponseDTO.ok(null, "Role added successfully", request.getRequestURI());
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("{staffId}/exists")

@@ -34,8 +34,8 @@ public class SuperUserSeeder {
                 admin.setLastName("Mcharo");
                 admin.setEmail("mcharoprofg23@gmail.com");
                 admin.setPhoneNumber("+255746561545");
-                admin.setPassword(passwordEncoder.encode("admin"));
-                admin.setRoles(List.of(Role.ADMIN, Role.SUPER_ADMIN));
+                admin.setPassword(passwordEncoder.encode("Mcharo12!"));
+                admin.setRoles(List.of(Role.ADMIN, Role.SUPER_USER));
 
                 userRepository.save(admin);
                 System.out.println("✅ Admin user created.");

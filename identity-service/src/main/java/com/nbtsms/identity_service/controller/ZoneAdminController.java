@@ -1,29 +1,28 @@
 package com.nbtsms.identity_service.controller;
 
+import com.nbtsms.identity_service.dto.IdentityResponseDTO;
 import com.nbtsms.identity_service.dto.ZoneAdminIdDTO;
-import com.nbtsms.identity_service.exception.BadRequestException;
-import com.nbtsms.identity_service.exception.ConflictException;
-import com.nbtsms.identity_service.exception.NotFoundException;
-import com.nbtsms.identity_service.openapi.DetailMessageResponse;
-import com.nbtsms.identity_service.openapi.FieldErrorResponse;
 import com.nbtsms.identity_service.service.impl.ZoneAdminServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springdoc.api.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Tag(name = "Zone Admin", description = "Endpoints related to zone admins")
 @RestController
-@RequestMapping("zones/admin")
+@RequestMapping("zones/{zoneId}/admins")
 public class ZoneAdminController {
     private final ZoneAdminServiceImpl zoneAdminService;
 
@@ -31,8 +30,8 @@ public class ZoneAdminController {
         this.zoneAdminService = zoneAdminService;
     }
 
-    @PatchMapping("{zoneId}/assign-admin")
-    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN')")
+    @PatchMapping("assign")
+    @PreAuthorize("hasAuthority('ROLE_SUPER_USER')")
     @Operation(
             summary = "Assign admin to zone",
             description = "Assign user to zone as admin"
@@ -43,7 +42,7 @@ public class ZoneAdminController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = DetailMessageResponse.class
+                                    implementation = IdentityResponseDTO.class
                             )
                     )
             ),
@@ -53,8 +52,7 @@ public class ZoneAdminController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = DetailMessageResponse.class,
-                                    description = "User | Zone not found"
+                                    implementation = ErrorMessage.class
                             )
                     )
             ),
@@ -63,34 +61,24 @@ public class ZoneAdminController {
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DetailMessageResponse.class)
+                            schema = @Schema(
+                                    implementation = ErrorMessage.class
+                            )
                     )
             ),
     })
-    public ResponseEntity<Map<String, Object>> assignZoneAdmin(@PathVariable UUID zoneId, @Valid @RequestBody ZoneAdminIdDTO zoneAdminIdDTO) {
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            zoneAdminService.assignAdminToZone(zoneId, zoneAdminIdDTO.getAdminId());
-            response.put("detail", "Successfully admin assigned to zone");
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (ConflictException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-        } catch (BadRequestException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<IdentityResponseDTO<Map<String, Object>>> assignZoneAdmin(
+            @PathVariable UUID zoneId,
+            @Valid @RequestBody ZoneAdminIdDTO zoneAdminIdDTO,
+            HttpServletRequest request
+    ) {
+        zoneAdminService.assignAdminToZone(zoneId, zoneAdminIdDTO.getAdminId());
+        IdentityResponseDTO<Map<String, Object>> response = IdentityResponseDTO.ok(null, "Successfully admin assigned to zone", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PatchMapping("{zoneId}/unassign-admin")
-    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN')")
+    @PatchMapping("remove")
+    @PreAuthorize("hasAuthority('ROLE_SUPER_USER')")
     @Operation(
             summary = "Unassign admin from zone",
             description = "Unassign user from zone as admin"
@@ -101,7 +89,7 @@ public class ZoneAdminController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = DetailMessageResponse.class
+                                    implementation = IdentityResponseDTO.class
                             )
                     )
             ),
@@ -111,7 +99,7 @@ public class ZoneAdminController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = FieldErrorResponse.class
+                                    implementation = ErrorMessage.class
                             )
                     )
             ),
@@ -120,23 +108,17 @@ public class ZoneAdminController {
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DetailMessageResponse.class)
+                            schema = @Schema(implementation = ErrorMessage.class)
                     )
             ),
     })
-    public ResponseEntity<Map<String, Object>> unAssignZoneAdmin(@PathVariable UUID zoneId, @Valid @RequestBody ZoneAdminIdDTO zoneAdminIdDTO) {
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            zoneAdminService.removeAdminFromZone(zoneId, zoneAdminIdDTO.getAdminId());
-            response.put("detail", "Successfully user unassigned from zone");
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<IdentityResponseDTO<Map<String, Object>>> unAssignZoneAdmin(
+            @PathVariable UUID zoneId,
+            @Valid @RequestBody ZoneAdminIdDTO zoneAdminIdDTO,
+            HttpServletRequest request
+    ) {
+        zoneAdminService.removeAdminFromZone(zoneId, zoneAdminIdDTO.getAdminId());
+        IdentityResponseDTO<Map<String, Object>> response = IdentityResponseDTO.ok(null, "Successfully user unassigned from zone", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

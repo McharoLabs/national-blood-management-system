@@ -2,29 +2,28 @@ package com.nbtsms.identity_service.controller;
 
 import com.nbtsms.identity_service.config.AuthUtil;
 import com.nbtsms.identity_service.dto.CenterStaffDTO;
-import com.nbtsms.identity_service.exception.BadRequestException;
-import com.nbtsms.identity_service.exception.ConflictException;
-import com.nbtsms.identity_service.exception.NotFoundException;
-import com.nbtsms.identity_service.openapi.DetailMessageResponse;
-import com.nbtsms.identity_service.repository.UserRepository;
+import com.nbtsms.identity_service.dto.IdentityResponseDTO;
 import com.nbtsms.identity_service.service.impl.CenterStaffServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springdoc.api.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Tag(name = "Center Staff", description = "Endpoints related to center staffs")
 @RestController
-@RequestMapping("staffs")
+@RequestMapping("centers/{centerId}/staff")
 public class CenterStaffController {
     private final CenterStaffServiceImpl centerStaffService;
 
@@ -32,7 +31,7 @@ public class CenterStaffController {
         this.centerStaffService = centerStaffService;
     }
 
-    @PatchMapping("{centerId}/add-staff")
+    @PatchMapping("add")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(
             summary = "Add staff to center",
@@ -44,7 +43,7 @@ public class CenterStaffController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = DetailMessageResponse.class
+                                    implementation = IdentityResponseDTO.class
                             )
                     )
             ),
@@ -54,8 +53,7 @@ public class CenterStaffController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = DetailMessageResponse.class,
-                                    description = "User | Zone not found"
+                                    implementation = ErrorMessage.class
                             )
                     )
             ),
@@ -64,41 +62,29 @@ public class CenterStaffController {
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DetailMessageResponse.class)
+                            schema = @Schema(implementation = ErrorMessage.class)
                     )
             ),
     })
-    public ResponseEntity<Map<String, Object>> addStaffToCenter(@PathVariable UUID centerId, @Valid @RequestBody CenterStaffDTO centerStaffDTO) {
-
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<IdentityResponseDTO<Map<String, String>>> addStaffToCenter(
+            @PathVariable UUID centerId,
+            @Valid @RequestBody CenterStaffDTO centerStaffDTO,
+            HttpServletRequest request
+    ) {
 
         UUID adminId = AuthUtil.getAuthenticatedUserId();
 
         if (adminId == null) {
-            response.put("detail", "Unauthorised");
-            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+            IdentityResponseDTO<Map<String, String>> response = IdentityResponseDTO.error(403, "You are forbidden to make these changes", request.getRequestURI());
+            return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
         }
 
-        try {
-            centerStaffService.addStaffToCenter(centerId, centerStaffDTO.getStaffId(), adminId);
-            response.put("detail", "Successfully staff added to the center");
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (ConflictException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-        } catch (BadRequestException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        centerStaffService.addStaffToCenter(centerId, centerStaffDTO.getStaffId(), adminId);
+        IdentityResponseDTO<Map<String, String>> response = IdentityResponseDTO.ok(null, "Successfully staff added to the center", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PatchMapping("{centerId}/remove-staff")
+    @PatchMapping("remove")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(
             summary = "Remove staff from center",
@@ -110,7 +96,7 @@ public class CenterStaffController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = DetailMessageResponse.class
+                                    implementation = IdentityResponseDTO.class
                             )
                     )
             ),
@@ -120,7 +106,7 @@ public class CenterStaffController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = DetailMessageResponse.class
+                                    implementation = ErrorMessage.class
                             )
                     )
             ),
@@ -129,30 +115,25 @@ public class CenterStaffController {
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DetailMessageResponse.class)
+                            schema = @Schema(implementation = ErrorMessage.class)
                     )
             ),
     })
-    public ResponseEntity<Map<String, Object>> removeStaffFromCenter(@PathVariable UUID centerId, @Valid CenterStaffDTO centerStaffDTO) {
-        Map<String, Object> response = new HashMap<>();
-
+    public ResponseEntity<IdentityResponseDTO<Map<String, String>>> removeStaffFromCenter(
+            @PathVariable UUID centerId,
+            @Valid @RequestBody CenterStaffDTO centerStaffDTO,
+            HttpServletRequest request
+    ) {
         UUID adminId = AuthUtil.getAuthenticatedUserId();
 
         if (adminId == null) {
-            response.put("detail", "Unauthorised");
-            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+            IdentityResponseDTO<Map<String, String>> response = IdentityResponseDTO.error(403, "You are forbidden to make these changes", request.getRequestURI());
+            return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
         }
 
-        try {
-            centerStaffService.removeStaffFromCenter(centerId, centerStaffDTO.getStaffId(), adminId);
-            response.put("detail", "Successfully user unassigned from zone");
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        centerStaffService.removeStaffFromCenter(centerId, centerStaffDTO.getStaffId(), adminId);
+
+        IdentityResponseDTO<Map<String, String>> response = IdentityResponseDTO.ok(null, "Successfully user unassigned from center", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

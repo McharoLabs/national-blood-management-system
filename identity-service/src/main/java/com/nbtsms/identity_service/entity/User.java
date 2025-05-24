@@ -66,13 +66,6 @@ public class User implements UserDetails {
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     private List<Role> roles;
 
-    private List<UUID> physicalExaminationIds;
-    private List<UUID> haematologicalTestIds;
-    private List<UUID> bloodPressureAndPulseIds;
-    private List<UUID> finalDonorEvaluationIds;
-    private List<UUID> collectionOfficerIds;
-    private List<UUID> meetingIds;
-
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -108,6 +101,10 @@ public class User implements UserDetails {
         return credentialsNonExpired;
     }
 
+    public String fullName() {
+        return this.firstName + " " + this.middleName + " " + this.lastName;
+    }
+
     @Override
     public boolean isEnabled() {
         return enabled;
@@ -137,8 +134,6 @@ public class User implements UserDetails {
     }
 
 
-    public String fullName() {
-        return this.firstName + " " + this.middleName + " " + this.lastName;
-    }
+    public boolean isLabTechnician() {return this.roles.contains(Role.LAB_TECHNICIAN);}
 
 }

@@ -1,15 +1,18 @@
 package com.nbtsms.identity_service.controller;
 
+import com.nbtsms.identity_service.dto.ErrorResponseDTO;
+import com.nbtsms.identity_service.dto.IdentityResponseDTO;
 import com.nbtsms.identity_service.dto.JwtAuthenticationResponseDTO;
 import com.nbtsms.identity_service.dto.RefreshTokenRequest;
 import com.nbtsms.identity_service.dto.SignInRequestDTO;
-import com.nbtsms.identity_service.exception.NotFoundException;
 import com.nbtsms.identity_service.service.impl.AuthenticationServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
-
+@Tag(name = "Authentication", description = "Endpoints related to authentication")
 @RestController
 @RequestMapping("auth")
 public class AuthenticationController {
@@ -42,34 +43,34 @@ public class AuthenticationController {
                     description = "Successfully authenticated",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = JwtAuthenticationResponseDTO.class)
+                            schema = @Schema(implementation = IdentityResponseDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "User not found",
-                    content = @Content(mediaType = "application/json")
+                    description = "User not found or invalid credentials",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Internal server error",
-                    content = @Content(mediaType = "application/json")
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
             )
     })
-    public ResponseEntity<Map<String, Object>> signIn(@Valid @RequestBody SignInRequestDTO signInRequestDTO) {
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            JwtAuthenticationResponseDTO responseDTO = authenticationService.signIn(signInRequestDTO);
-            response.put("tokens", responseDTO);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<IdentityResponseDTO<JwtAuthenticationResponseDTO>> signIn(
+            @Valid @RequestBody SignInRequestDTO signInRequestDTO,
+            HttpServletRequest request
+    ) {
+        JwtAuthenticationResponseDTO tokens = authenticationService.signIn(signInRequestDTO);
+        IdentityResponseDTO<JwtAuthenticationResponseDTO> response =
+                IdentityResponseDTO.ok(tokens, "User authenticated successfully", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("refresh")
@@ -83,33 +84,32 @@ public class AuthenticationController {
                     description = "Token refreshed successfully",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = JwtAuthenticationResponseDTO.class)
+                            schema = @Schema(implementation = IdentityResponseDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "Refresh token not found or invalid",
-                    content = @Content(mediaType = "application/json")
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Internal server error",
-                    content = @Content(mediaType = "application/json")
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
             )
     })
-    public ResponseEntity<Map<String, Object>> refresh(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            JwtAuthenticationResponseDTO responseDTO = authenticationService.refreshToken(refreshTokenRequest);
-            response.put("token", responseDTO);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<IdentityResponseDTO<JwtAuthenticationResponseDTO>> refresh(
+            @Valid @RequestBody RefreshTokenRequest refreshTokenRequest,
+            HttpServletRequest request
+    ) {
+        JwtAuthenticationResponseDTO tokens = authenticationService.refreshToken(refreshTokenRequest);
+        IdentityResponseDTO<JwtAuthenticationResponseDTO> response = IdentityResponseDTO.ok(tokens, "Refresh token created successfully", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
