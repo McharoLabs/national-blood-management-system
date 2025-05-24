@@ -1,10 +1,8 @@
 package com.nbtsms.identity_service.controller;
 
-import com.nbtsms.identity_service.dto.AssignRole;
-import com.nbtsms.identity_service.dto.CreateUserDTO;
-import com.nbtsms.identity_service.dto.IdentityResponseDTO;
-import com.nbtsms.identity_service.dto.UserDTO;
+import com.nbtsms.identity_service.dto.*;
 import com.nbtsms.identity_service.service.impl.UserServiceImpl;
+import com.nbtsms.identity_service.swagger.IdentityUserPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springdoc.api.ErrorMessage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -58,7 +54,7 @@ public class UserController {
                     description = "Validation failed or bad request",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorMessage.class)
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
                     )
             ),
             @ApiResponse(
@@ -66,7 +62,7 @@ public class UserController {
                     description = "User already exists (conflict)",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorMessage.class)
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
                     )
             ),
             @ApiResponse(
@@ -74,7 +70,7 @@ public class UserController {
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorMessage.class)
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
                     )
             )
     })
@@ -101,9 +97,7 @@ public class UserController {
                     description = "Users fetched successfully",
                     content = @Content(
                             mediaType = "application/json",
-                            array = @ArraySchema(
-                                    schema = @Schema(implementation = IdentityResponseDTO.class)
-                            )
+                            schema = @Schema(implementation = IdentityUserPageResponse.class)
                     )
             ),
             @ApiResponse(
@@ -111,7 +105,7 @@ public class UserController {
                     description = "Internal server error.",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorMessage.class)
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
                     )
             )
     })
@@ -140,9 +134,7 @@ public class UserController {
                     description = "UseAdmin fetched successfully",
                     content = @Content(
                             mediaType = "application/json",
-                            array = @ArraySchema(
-                                    schema = @Schema(implementation = IdentityResponseDTO.class)
-                            )
+                            schema = @Schema(implementation = IdentityUserPageResponse.class)
                     )
             ),
             @ApiResponse(
@@ -150,7 +142,7 @@ public class UserController {
                     description = "Internal server error.",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorMessage.class)
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
                     )
             )
 
@@ -189,7 +181,7 @@ public class UserController {
                     description = "Bad request: invalid or duplicate role",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorMessage.class)
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
                     )
             ),
             @ApiResponse(
@@ -197,7 +189,7 @@ public class UserController {
                     description = "User not found",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorMessage.class)
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
                     )
             ),
             @ApiResponse(
@@ -205,7 +197,7 @@ public class UserController {
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorMessage.class)
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
                     )
             )
     })

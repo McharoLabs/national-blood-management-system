@@ -2,6 +2,7 @@ package com.nbtsms.identity_service.controller;
 
 import com.nbtsms.identity_service.config.AuthUtil;
 import com.nbtsms.identity_service.dto.CenterStaffDTO;
+import com.nbtsms.identity_service.dto.ErrorResponseDTO;
 import com.nbtsms.identity_service.dto.IdentityResponseDTO;
 import com.nbtsms.identity_service.service.impl.CenterStaffServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,7 +13,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springdoc.api.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,7 +53,7 @@ public class CenterStaffController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = ErrorMessage.class
+                                    implementation = ErrorResponseDTO.class
                             )
                     )
             ),
@@ -62,7 +62,7 @@ public class CenterStaffController {
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorMessage.class)
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
                     )
             ),
     })
@@ -106,7 +106,7 @@ public class CenterStaffController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = ErrorMessage.class
+                                    implementation = ErrorResponseDTO.class
                             )
                     )
             ),
@@ -115,7 +115,7 @@ public class CenterStaffController {
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorMessage.class)
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
                     )
             ),
     })

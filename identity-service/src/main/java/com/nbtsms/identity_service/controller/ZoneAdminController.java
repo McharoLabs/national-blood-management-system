@@ -1,5 +1,6 @@
 package com.nbtsms.identity_service.controller;
 
+import com.nbtsms.identity_service.dto.ErrorResponseDTO;
 import com.nbtsms.identity_service.dto.IdentityResponseDTO;
 import com.nbtsms.identity_service.dto.ZoneAdminIdDTO;
 import com.nbtsms.identity_service.service.impl.ZoneAdminServiceImpl;
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springdoc.api.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,7 +52,7 @@ public class ZoneAdminController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = ErrorMessage.class
+                                    implementation = ErrorResponseDTO.class
                             )
                     )
             ),
@@ -62,7 +62,7 @@ public class ZoneAdminController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = ErrorMessage.class
+                                    implementation = ErrorResponseDTO.class
                             )
                     )
             ),
@@ -99,7 +99,7 @@ public class ZoneAdminController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(
-                                    implementation = ErrorMessage.class
+                                    implementation = ErrorResponseDTO.class
                             )
                     )
             ),
@@ -108,7 +108,7 @@ public class ZoneAdminController {
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorMessage.class)
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
                     )
             ),
     })
