@@ -6,6 +6,7 @@ import com.nbtsms.identity_service.dto.JwtAuthenticationResponseDTO;
 import com.nbtsms.identity_service.dto.RefreshTokenRequest;
 import com.nbtsms.identity_service.dto.SignInRequestDTO;
 import com.nbtsms.identity_service.service.impl.AuthenticationServiceImpl;
+import com.nbtsms.identity_service.swagger.IdentityAuthResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -43,7 +44,7 @@ public class AuthenticationController {
                     description = "Successfully authenticated",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = IdentityResponseDTO.class)
+                            schema = @Schema(implementation = IdentityAuthResponse.class)
                     )
             ),
             @ApiResponse(
@@ -84,7 +85,7 @@ public class AuthenticationController {
                     description = "Token refreshed successfully",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = IdentityResponseDTO.class)
+                            schema = @Schema(implementation = IdentityAuthResponse.class)
                     )
             ),
             @ApiResponse(
