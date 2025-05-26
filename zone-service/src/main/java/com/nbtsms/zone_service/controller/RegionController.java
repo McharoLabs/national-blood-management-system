@@ -1,15 +1,20 @@
 package com.nbtsms.zone_service.controller;
 
 import com.nbtsms.zone_service.dto.CreateRegionDTO;
-import com.nbtsms.zone_service.exception.ConflictException;
-import com.nbtsms.zone_service.exception.NotFoundException;
+import com.nbtsms.zone_service.dto.RegionResponseDTO;
+import com.nbtsms.zone_service.dto.ZoneResponseWrapperDTO;
 import com.nbtsms.zone_service.service.impl.RegionServiceImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,23 +32,49 @@ public class RegionController {
         return regionService.regionExists(regionId);
     }
 
-    @PostMapping("add")
-    public ResponseEntity<Map<String, Object>> createRegion(@Valid @RequestBody CreateRegionDTO createRegionDTO) {
-        Map<String, Object> response = new HashMap<>();
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    @PostMapping
+    public ResponseEntity<ZoneResponseWrapperDTO<Map<String, Object>>> createRegion(
+            @Valid @RequestBody CreateRegionDTO createRegionDTO,
+            HttpServletRequest request
+    ) {
+        ZoneResponseWrapperDTO<Map<String, Object>> response = ZoneResponseWrapperDTO.ok(
+                Map.of("regionId", regionService.create(createRegionDTO)),
+                "Region added successfully to the zone",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
 
-        try {
-            UUID regionId = regionService.create(createRegionDTO);
-            response.put("regionId",regionId);
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (ConflictException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @GetMapping("{zoneId}/zone")
+    public ResponseEntity<ZoneResponseWrapperDTO<Page<RegionResponseDTO>>> getAllByZone(
+            @PathVariable UUID zoneId,
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            HttpServletRequest request
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        ZoneResponseWrapperDTO<Page<RegionResponseDTO>> response = ZoneResponseWrapperDTO.ok(
+                regionService.getAllByZone(name, zoneId, pageable),
+                "Regions retrieved successful",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("{regionId}/region")
+    public ResponseEntity<ZoneResponseWrapperDTO<RegionResponseDTO>> getRegionById(
+            @PathVariable UUID regionId,
+            HttpServletRequest request
+    ) {
+        ZoneResponseWrapperDTO<RegionResponseDTO> response = ZoneResponseWrapperDTO.ok(
+                regionService.getRegionById(regionId),
+                "Region retrieved successful",
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

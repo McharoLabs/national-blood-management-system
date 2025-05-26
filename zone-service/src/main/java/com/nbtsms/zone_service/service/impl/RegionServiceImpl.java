@@ -13,15 +13,18 @@ import com.nbtsms.zone_service.repository.ZoneRepository;
 import com.nbtsms.zone_service.service.RegionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Transactional(isolation = Isolation.SERIALIZABLE)
 @Service
 public class RegionServiceImpl implements RegionService {
     private static final Logger logger = LoggerFactory.getLogger(RegionServiceImpl.class);
@@ -35,17 +38,12 @@ public class RegionServiceImpl implements RegionService {
 
     @Override
     public UUID create(CreateRegionDTO createRegionDTO) throws ConflictException, NotFoundException, BadRequestException {
-        regionRepository.findByName(createRegionDTO.getName()).ifPresent(region -> {
+        regionRepository.findByNameIgnoreCase(createRegionDTO.getName()).ifPresent(region -> {
             throw new ConflictException(Map.of("name", "Region with this name already exists."));
         });
 
-        Zone zone = zoneRepository.findById(createRegionDTO.getZoneId()).orElse(null);
-
-        Map<String, String> errors = new HashMap<>();
-
-        if (zone == null) errors.put("zone", "Zone not found");
-
-        if (!errors.isEmpty()) throw new NotFoundException(errors);
+        Zone zone = zoneRepository.findById(createRegionDTO.getZoneId())
+                .orElseThrow(() -> new NotFoundException(Map.of("zoneId", "Zone not found")));
 
         Region region = RegionMapper.toEntity(createRegionDTO);
 
@@ -58,6 +56,8 @@ public class RegionServiceImpl implements RegionService {
                 .filter(r -> r.getName().equals(createRegionDTO.getName()))
                 .findFirst()
                 .orElseThrow(() -> new BadRequestException(Map.of("detail", "Region not saved as expected")));
+
+        logger.info("Region added to zone successful: {}", region);
 
         return savedRegion.getId();
     }
@@ -74,5 +74,23 @@ public class RegionServiceImpl implements RegionService {
                 .map(RegionMapper::toResponse)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public Page<RegionResponseDTO> getAllByZone(String name, UUID zoneId, Pageable pageable) throws NotFoundException {
+        Zone zone = zoneRepository.findById(zoneId).orElseThrow(() -> new NotFoundException(Map.of("detail", "Zone not found")));
+
+        Page<Region> allByZoneOptionalName = regionRepository.findAllByZoneOptionalName(zone, name, pageable);
+        return allByZoneOptionalName.map(RegionMapper::toResponse);
+    }
+
+    @Override
+    public RegionResponseDTO getRegionById(UUID regionId) throws NotFoundException {
+        return RegionMapper
+                .toResponse(
+                        regionRepository.findById(regionId)
+                                .orElseThrow(() -> new NotFoundException(Map.of("detail", "Region not found")))
+                );
+    }
+
 
 }

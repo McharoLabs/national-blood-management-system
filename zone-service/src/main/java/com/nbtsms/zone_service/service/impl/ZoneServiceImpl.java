@@ -11,6 +11,7 @@ import com.nbtsms.zone_service.service.ZoneService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Transactional
+@Transactional(isolation = Isolation.SERIALIZABLE)
 @Service
 public class ZoneServiceImpl implements ZoneService {
     private static final Logger logger = LoggerFactory.getLogger(ZoneServiceImpl.class);
@@ -36,7 +37,10 @@ public class ZoneServiceImpl implements ZoneService {
         });
 
         Zone zone = ZoneMapper.toEntity(createZoneDTO);
-        return zoneRepository.save(zone).getId();
+        UUID id = zoneRepository.save(zone).getId();
+
+        logger.info("Zone added successfully: {}", zone);
+        return id;
     }
 
 

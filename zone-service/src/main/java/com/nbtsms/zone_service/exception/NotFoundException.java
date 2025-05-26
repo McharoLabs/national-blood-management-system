@@ -15,3 +15,4 @@ public class NotFoundException extends RuntimeException{
         this.errorMessages = errorMessages;
     }
 }
+

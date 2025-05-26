@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ZoneService {
-    UUID addZone(CreateZoneDTO createZoneDTO) throws ConflictException, ConflictException;
+    UUID addZone(CreateZoneDTO createZoneDTO) throws ConflictException;
     boolean zoneExists(UUID id);
     ZoneResponseDTO getZone(UUID id) throws NotFoundException;
     List<ZoneResponseDTO> getZones();

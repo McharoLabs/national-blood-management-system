@@ -3,11 +3,7 @@ package com.nbtsms.zone_service.controller;
 import com.nbtsms.zone_service.dto.CenterResponseDTO;
 import com.nbtsms.zone_service.dto.CreateCenterDTO;
 import com.nbtsms.zone_service.dto.ZoneIdDTO;
-import com.nbtsms.zone_service.dto.ZoneResponseDTO;
-import com.nbtsms.zone_service.exception.BadRequestException;
-import com.nbtsms.zone_service.exception.ConflictException;
-import com.nbtsms.zone_service.exception.NotFoundException;
-import com.nbtsms.zone_service.repository.ZoneRepository;
+import com.nbtsms.zone_service.dto.ZoneResponseWrapperDTO;
 import com.nbtsms.zone_service.service.impl.CenterServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -21,7 +17,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -40,67 +35,55 @@ public class CenterController {
         return centerService.centerExists(centerId);
     }
 
-    @GetMapping("{centerId}/center")
-    public ResponseEntity<?> getZone(@PathVariable UUID centerId) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            CenterResponseDTO center = centerService.getCenter(centerId);
-            return ResponseEntity.ok(center);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @GetMapping("{regionId}/region")
+    public ResponseEntity<ZoneResponseWrapperDTO<Page<CenterResponseDTO>>> getAllByCenter(
+            @PathVariable UUID regionId,
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            HttpServletRequest request
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        ZoneResponseWrapperDTO<Page<CenterResponseDTO>> response = ZoneResponseWrapperDTO.ok(
+                centerService.getAllByRegion(name, regionId, pageable),
+                "Center retrieved successful",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PostMapping("add")
-    public ResponseEntity<Map<String, Object>> createCenter(@Valid @RequestBody CreateCenterDTO createCenterDTO) {
-        Map<String, Object> response = new HashMap<>();
-
-        try {
-            UUID centerId = centerService.create(createCenterDTO);
-            response.put("centerId", centerId);
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (ConflictException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    @PostMapping
+    public ResponseEntity<ZoneResponseWrapperDTO<Map<String, Object>>> createCenter(
+            @Valid @RequestBody CreateCenterDTO createCenterDTO,
+            HttpServletRequest request
+    ) {
+        ZoneResponseWrapperDTO<Map<String, Object>> response = ZoneResponseWrapperDTO.ok(
+                Map.of("centerId", centerService.create(createCenterDTO)),
+                "Center added successful to region",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("all")
+    @GetMapping("{zoneId}/zone")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<?> getAllCenters(
-            HttpServletRequest request,
+    public ResponseEntity<ZoneResponseWrapperDTO<Page<CenterResponseDTO>>> getAllCenters(
             @Valid @RequestBody ZoneIdDTO zoneIdDTO,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "name") String sortBy
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            HttpServletRequest request
             ) {
-        //UUID staffId = UUID.fromString((String) request.getAttribute("userId"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        ZoneResponseWrapperDTO<Page<CenterResponseDTO>> response = ZoneResponseWrapperDTO.ok(
+                centerService.getAllCenterByZoneId(zoneIdDTO.getZoneId(), pageable),
+                "Center retrieved successful",
+                request.getRequestURI()
+        );
 
-        Map<String, Object> response = new HashMap<>();
-        try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-            Page<CenterResponseDTO> centers = centerService.getAllCenterByZoneId(zoneIdDTO.getZoneId(), pageable);
-            return new ResponseEntity<>(centers, HttpStatus.OK);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (BadRequestException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 

@@ -53,4 +53,19 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             Pageable pageable
     );
 
+    @Query("""
+        SELECT DISTINCT u FROM User u
+        WHERE (
+            LOWER(CONCAT(u.firstName, ' ', COALESCE(u.middleName, ''), ' ', u.lastName))
+                LIKE LOWER(CONCAT('%', COALESCE(:name, ''), '%'))
+            OR LOWER(u.email) LIKE LOWER(CONCAT('%', COALESCE(:email, ''), '%'))
+        )
+    """)
+    Page<User> fetchSearchUsers(
+            @Param("name") String name,
+            @Param("email") String email,
+            Pageable pageable
+    );
+
+
 }

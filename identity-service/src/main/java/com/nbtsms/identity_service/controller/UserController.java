@@ -4,7 +4,6 @@ import com.nbtsms.identity_service.dto.*;
 import com.nbtsms.identity_service.service.impl.UserServiceImpl;
 import com.nbtsms.identity_service.swagger.IdentityUserPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -210,6 +209,45 @@ public class UserController {
         IdentityResponseDTO<Map<String, Object>> response = IdentityResponseDTO.ok(null, "Role added successfully", request.getRequestURI());
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
+    @Operation(
+            summary = "Search users",
+            description = "Search users by name and email."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Users fetched successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = IdentityUserPageResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
+            )
+    })
+    public ResponseEntity<IdentityResponseDTO<Page<UserDTO>>> searchUsers(
+            HttpServletRequest request,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String email,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
+        Page<UserDTO> users = userService.searchUsers(name, email, pageable);
+        IdentityResponseDTO<Page<UserDTO>> response = IdentityResponseDTO.ok(users, "Users search result", request.getRequestURI());
+        return ResponseEntity.ok(response);
+    }
+
 
     @GetMapping("{staffId}/exists")
     @Operation(

@@ -2,9 +2,9 @@ package com.nbtsms.zone_service.controller;
 
 import com.nbtsms.zone_service.dto.CreateZoneDTO;
 import com.nbtsms.zone_service.dto.ZoneResponseDTO;
-import com.nbtsms.zone_service.exception.ConflictException;
-import com.nbtsms.zone_service.exception.NotFoundException;
+import com.nbtsms.zone_service.dto.ZoneResponseWrapperDTO;
 import com.nbtsms.zone_service.service.impl.ZoneServiceImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("zone")
+@RequestMapping("")
 public class ZoneController {
 
     private final ZoneServiceImpl zoneService;
@@ -24,21 +24,44 @@ public class ZoneController {
         this.zoneService = zoneService;
     }
 
-    @PostMapping("create")
-    public ResponseEntity<Map<String, Object>> createZone(@Valid @RequestBody CreateZoneDTO createZoneDTO) {
-        Map<String, Object> response = new HashMap<>();
+    @PreAuthorize("hasAuthority('ROLE_SUPER_USER')")
+    @PostMapping
+    public ResponseEntity<ZoneResponseWrapperDTO<Map<String, Object>>> createZone(
+            @Valid @RequestBody CreateZoneDTO createZoneDTO,
+            HttpServletRequest request
+    ) {
+        ZoneResponseWrapperDTO<Map<String, Object>> response = ZoneResponseWrapperDTO.ok(
+                Map.of("zoneId", zoneService.addZone(createZoneDTO)),
+                "Zone created successful", request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
 
-        try {
-            UUID zoneId = zoneService.addZone(createZoneDTO);
-            response.put("zoneId", zoneId);
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (ConflictException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
+    @GetMapping
+    public ResponseEntity<ZoneResponseWrapperDTO<List<ZoneResponseDTO>>> getAllZones(HttpServletRequest request) {
+        ZoneResponseWrapperDTO<List<ZoneResponseDTO>> response = ZoneResponseWrapperDTO.ok(
+                zoneService.getZones(),
+                "Zones retrieved successful",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
+    @GetMapping("{zoneId}/zone")
+    public ResponseEntity<ZoneResponseWrapperDTO<ZoneResponseDTO>> getZone(
+            @PathVariable UUID zoneId,
+            HttpServletRequest request
+    ) {
+        ZoneResponseWrapperDTO<ZoneResponseDTO> response = ZoneResponseWrapperDTO.ok(
+                zoneService.getZone(zoneId),
+                "Zone retrieved successful",
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('ROLE_INTERNAL')")
@@ -52,39 +75,4 @@ public class ZoneController {
     public UUID getZoneIdById(@PathVariable UUID zoneId) {
         return zoneService.getZoneIdById(zoneId);
     }
-
-    @PreAuthorize("hasAuthority('ROLE_USER')")
-    @GetMapping("user")
-    public String test() {
-        return "Hello user";
-    }
-
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @GetMapping("all")
-    public ResponseEntity<?> getAllZones() {
-        try {
-            List<ZoneResponseDTO> zones = zoneService.getZones();
-            return ResponseEntity.ok(zones);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("detail", e.getMessage()));
-        }
-    }
-
-    @GetMapping("{zoneId}/zone")
-    public ResponseEntity<?> getZone(@PathVariable UUID zoneId) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            ZoneResponseDTO zone = zoneService.getZone(zoneId);
-            return ResponseEntity.ok(zone);
-        } catch (NotFoundException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-
 }

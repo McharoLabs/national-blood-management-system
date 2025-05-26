@@ -15,3 +15,4 @@ public class ConflictException extends RuntimeException {
         this.errorMessages = errorMessages;
     }
 }
+

@@ -17,5 +17,6 @@ public interface CenterService {
     List<CenterResponseDTO> getCenters(UUID staffId) throws NotFoundException, BadRequestException;
     CenterResponseDTO getCenter(UUID centerId) throws NotFoundException;
     Page<CenterResponseDTO> getAllCenterByZoneId(UUID zoneId, Pageable pageable) throws NotFoundException, BadRequestException;
+    Page<CenterResponseDTO> getAllByRegion(String name, UUID regionId, Pageable pageable) throws NotFoundException;
     boolean centerBelongToZone(UUID zoneId, UUID centerId);
 }

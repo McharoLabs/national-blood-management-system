@@ -79,6 +79,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<UserDTO> searchUsers(String name, String email, Pageable pageable) {
+        return userRepository.fetchSearchUsers(name, email, pageable)
+                .map(UserMapper::toResponse);
+    }
+
+    @Override
     public Optional<User> getUser(UUID id) {
         return userRepository.findById(id);
     }

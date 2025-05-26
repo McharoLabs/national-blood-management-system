@@ -1,6 +1,5 @@
 package com.nbtsms.zone_service.service.impl;
 
-import com.nbtsms.zone_service.client.IdentityServiceClient;
 import com.nbtsms.zone_service.dto.CenterResponseDTO;
 import com.nbtsms.zone_service.dto.CreateCenterDTO;
 import com.nbtsms.zone_service.entity.Center;
@@ -16,14 +15,15 @@ import com.nbtsms.zone_service.repository.ZoneRepository;
 import com.nbtsms.zone_service.service.CenterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+@Transactional(isolation = Isolation.SERIALIZABLE)
 @Service
 public class CenterServiceImpl implements CenterService {
     private static final Logger logger = LoggerFactory.getLogger(CenterServiceImpl.class);
@@ -40,15 +40,12 @@ public class CenterServiceImpl implements CenterService {
 
     @Override
     public UUID create(CreateCenterDTO createCenterDTO) throws ConflictException, NotFoundException, BadRequestException {
-        centerRepository.findByName(createCenterDTO.getName()).ifPresent(center -> {
+        centerRepository.findByNameIgnoreCase(createCenterDTO.getName()).ifPresent(center -> {
             throw new ConflictException(Map.of("name", "Center with this name already exists."));
         });
 
-        Region region = regionRepository.findById(createCenterDTO.getRegionId()).orElse(null);
-
-        if (region == null) {
-            throw new NotFoundException(Map.of("regionId", "Region not found"));
-        }
+        Region region = regionRepository.findById(createCenterDTO.getRegionId())
+                .orElseThrow(() -> new NotFoundException(Map.of("regionId", "Region not found")));
 
         Center center = CenterMapper.toEntity(createCenterDTO);
         center.setRegion(region);
@@ -61,6 +58,8 @@ public class CenterServiceImpl implements CenterService {
                                 .filter(c -> c.getName().equals(createCenterDTO.getName()))
                                         .findFirst()
                                                 .orElseThrow(() -> new BadRequestException(Map.of("detail", "Center not saved as expected")));
+
+        logger.info("Center added successful to the region: {}", center);
 
         return savedCenter.getId();
     }
@@ -90,6 +89,15 @@ public class CenterServiceImpl implements CenterService {
         Zone zone = zoneRepository.findById(zoneId).orElseThrow(() -> new NotFoundException(Map.of("detail", "Zone you are assigned to, not found")));
 
         return centerRepository.findByRegionZoneId(zone.getId(), pageable)
+                .map(CenterMapper::toResponse);
+    }
+
+    @Override
+    public Page<CenterResponseDTO> getAllByRegion(String name, UUID regionId, Pageable pageable) throws NotFoundException {
+        Region region = regionRepository.findById(regionId)
+                .orElseThrow(() -> new NotFoundException(Map.of("detail", "Region not found")));
+
+        return centerRepository.findByRegionAndOptionalName(region, name, pageable)
                 .map(CenterMapper::toResponse);
     }
 

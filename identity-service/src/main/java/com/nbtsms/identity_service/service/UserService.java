@@ -22,4 +22,5 @@ public interface UserService {
     void assignRole(AssignRole assignRole, UUID userId) throws NotFoundException, BadRequestException;
     boolean staffExists(UUID staffId);
     UUID getZoneId(UUID staffId);
+    Page<UserDTO> searchUsers(String name, String email, Pageable pageable);
 }
