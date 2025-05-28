@@ -26,6 +26,12 @@ public class Center {
     @Column(nullable = false)
     private String address;
 
+    @Column(nullable = false)
+    private Double latitude;
+
+    @Column(nullable = false)
+    private Double longitude;
+
     @OneToMany(mappedBy = "center", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Staff> staffMembers = new HashSet<>();
 

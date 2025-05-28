@@ -11,6 +11,8 @@ public class CenterMapper {
 
         center.setName(createCenterDTO.getName());
         center.setAddress(createCenterDTO.getAddress());
+        center.setLatitude(createCenterDTO.getLatitude());
+        center.setLongitude(createCenterDTO.getLongitude());
 
         return center;
     }
@@ -21,6 +23,8 @@ public class CenterMapper {
         centerResponseDTO.setId(center.getId());
         centerResponseDTO.setName(center.getName());
         centerResponseDTO.setAddress(center.getAddress());
+        centerResponseDTO.setLatitude(centerResponseDTO.getLatitude());
+        centerResponseDTO.setLongitude(centerResponseDTO.getLongitude());
 
         return centerResponseDTO;
     }

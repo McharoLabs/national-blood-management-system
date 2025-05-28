@@ -1,6 +1,5 @@
 package com.nbtsms.zone_service.dto;
 
-import com.nbtsms.zone_service.entity.Region;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,4 +15,6 @@ public class CenterResponseDTO {
     private UUID id;
     private String name;
     private String address;
+    private Double latitude;
+    private Double longitude;
 }
