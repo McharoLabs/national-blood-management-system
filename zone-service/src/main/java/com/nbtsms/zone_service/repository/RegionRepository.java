@@ -15,7 +15,7 @@ public interface RegionRepository extends JpaRepository<Region, UUID> {
 
     @Query("""
             SELECT r FROM Region r
-            WHERE LOWER(r.name) = LOWER(:NAME)
+            WHERE LOWER(r.name) = LOWER(:name)
             """)
     Optional<Region> findByNameIgnoreCase(@Param("name") String name);
 

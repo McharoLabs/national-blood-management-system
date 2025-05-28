@@ -1,4 +1,4 @@
-package com.nbtsms.zone_service.service.impl;
+package com.nbtsms.zone_service.service;
 
 import com.nbtsms.zone_service.event.AdminZoneAssignmentEvent;
 import com.nbtsms.zone_service.event.AdminZoneUnassignmentEvent;

@@ -24,7 +24,7 @@ public interface CenterRepository extends JpaRepository<Center, UUID> {
     @Query("""
         SELECT c FROM Center c
         WHERE c.region = :region
-        AND (:name IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%')))
+        AND (LOWER(c.name) LIKE LOWER(CONCAT('%', COALESCE(:name, ''), '%')))
     """)
     Page<Center> findByRegionAndOptionalName(
             @Param("region") Region region,

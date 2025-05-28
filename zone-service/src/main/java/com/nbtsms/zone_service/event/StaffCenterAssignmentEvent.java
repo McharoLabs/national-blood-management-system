@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CenterStaffEvent {
+public class StaffCenterAssignmentEvent {
     private UUID centerId;
     private UUID staffId;
     private String firstName;

@@ -25,6 +25,9 @@ public class Zone {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Set<Admin> admins = new HashSet<>();
+
     @OneToMany(mappedBy = "zone", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = false)
     private Set<Region> regions = new HashSet<>();
 }

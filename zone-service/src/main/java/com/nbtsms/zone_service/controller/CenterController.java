@@ -36,7 +36,7 @@ public class CenterController {
     }
 
     @GetMapping("{regionId}/region")
-    public ResponseEntity<ZoneResponseWrapperDTO<Page<CenterResponseDTO>>> getAllByCenter(
+    public ResponseEntity<ZoneResponseWrapperDTO<Page<CenterResponseDTO>>> getAllByRegion(
             @PathVariable UUID regionId,
             @RequestParam(required = false) String name,
             @RequestParam(defaultValue = "0") int page,
