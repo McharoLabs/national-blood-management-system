@@ -119,6 +119,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<UserDTO> availableStaffs(String name) {
+        return userRepository.fetchAvailableStaff(name)
+                .stream()
+                .map(UserMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserDTO> availableAdmin(String name) {
+        return userRepository.fetchAvailableAdmin(name)
+                .stream()
+                .map(UserMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public boolean staffExists(UUID staffId) {
         return userRepository.findById(staffId).isPresent();
     }

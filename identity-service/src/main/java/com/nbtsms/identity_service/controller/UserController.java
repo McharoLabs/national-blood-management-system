@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -267,6 +268,72 @@ public class UserController {
     })
     public boolean staffExists(@PathVariable UUID staffId) {
         return userService.staffExists(staffId);
+    }
+
+    @GetMapping("available-staffs")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
+    @Operation(
+            summary = "Available Staffs",
+            description = "Retrieve the list of all available staffs to assign to the center"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Users fetched successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = IdentityUserPageResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
+            )
+    })
+    public ResponseEntity<IdentityResponseDTO<List<UserDTO>>> availableStaffs(
+            HttpServletRequest request,
+            @RequestParam(required = false) String name
+    ) {
+        List<UserDTO> userPage =  userService.availableStaffs(name);
+        IdentityResponseDTO<List<UserDTO>> response = IdentityResponseDTO.ok(userPage, "Staffs fetched successfully", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("available-admin")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
+    @Operation(
+            summary = "Available Admin",
+            description = "Retrieve the list of all available admin to assign to the zone"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Users fetched successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = IdentityUserPageResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
+            )
+    })
+    public ResponseEntity<IdentityResponseDTO<List<UserDTO>>> availableAdmin(
+            HttpServletRequest request,
+            @RequestParam(required = false) String name
+    ) {
+        List<UserDTO> userPage =  userService.availableAdmin(name);
+        IdentityResponseDTO<List<UserDTO>> response = IdentityResponseDTO.ok(userPage, "Staffs fetched successfully", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 

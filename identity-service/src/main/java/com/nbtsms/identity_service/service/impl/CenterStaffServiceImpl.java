@@ -1,63 +1,42 @@
 package com.nbtsms.identity_service.service.impl;
 
 import com.nbtsms.identity_service.client.ZoneServiceClient;
+import com.nbtsms.identity_service.constant.KafkaTopics;
+import com.nbtsms.identity_service.dto.UserDTO;
 import com.nbtsms.identity_service.entity.User;
 import com.nbtsms.identity_service.enums.Role;
+import com.nbtsms.identity_service.event.StaffCenterAssignmentEvent;
+import com.nbtsms.identity_service.event.StaffCenterUnassignmentEvent;
 import com.nbtsms.identity_service.exception.BadRequestException;
 import com.nbtsms.identity_service.exception.ConflictException;
 import com.nbtsms.identity_service.exception.NotFoundException;
+import com.nbtsms.identity_service.mapper.UserMapper;
 import com.nbtsms.identity_service.repository.UserRepository;
 import com.nbtsms.identity_service.service.CenterStaffService;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(isolation = Isolation.REPEATABLE_READ)
 public class CenterStaffServiceImpl implements CenterStaffService {
     private final UserRepository userRepository;
-    private final ZoneServiceClient zoneServiceClient;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public CenterStaffServiceImpl(UserRepository userRepository, ZoneServiceClient zoneServiceClient) {
+    public CenterStaffServiceImpl(UserRepository userRepository, KafkaTemplate<String, Object> kafkaTemplate) {
         this.userRepository = userRepository;
-        this.zoneServiceClient = zoneServiceClient;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
-    public void addStaffToCenter(UUID centerId, UUID staffId, UUID adminId) throws NotFoundException, ConflictException, BadRequestException {
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new NotFoundException(Map.of("adminId", "Could not find your admin details.")));
-
-        if (!admin.isZoneAdmin()) {
-            throw new BadRequestException(Map.of("adminId", "You are not assigned as an admin to any zone."));
-        }
-
-
-        boolean centerExists = zoneServiceClient.centerExists(centerId);
-
-
-
-        boolean zoneExists = zoneServiceClient.zoneExists(admin.getZoneId());
-
-
-        if (!centerExists) {
-            throw new NotFoundException(Map.of("detail", "Center not found"));
-        }
-
-
-        if (!zoneExists) {
-            throw new NotFoundException(Map.of("detail", "Zone not found"));
-        }
-
-        boolean centerAssociatedWithZone = zoneServiceClient.isCenterAssociatedWithZone(admin.getZoneId(), centerId);
-
-        if (!centerAssociatedWithZone) {
-            throw new BadRequestException(Map.of("centerId", "This center does not belong to your zone."));
-        }
+    public void addStaffToCenter(UUID centerId, UUID staffId) throws NotFoundException, ConflictException, BadRequestException {
 
         User staff = userRepository.findById(staffId)
                 .orElseThrow(() -> new NotFoundException(Map.of("staffId", "Staff not found.")));
@@ -72,27 +51,20 @@ public class CenterStaffServiceImpl implements CenterStaffService {
 
         staff.setCenterId(centerId);
         userRepository.save(staff);
+
+        kafkaTemplate.send(KafkaTopics.STAFF_CENTER_ASSIGNMENT, new StaffCenterAssignmentEvent(
+                centerId,
+                staffId,
+                staff.getFirstName(),
+                staff.getMiddleName(),
+                staff.getLastName(),
+                staff.getPhoneNumber(),
+                staff.getEmail()
+        ));
     }
 
     @Override
-    public void removeStaffFromCenter(UUID centerId, UUID staffId, UUID adminId) throws NotFoundException, BadRequestException {
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new NotFoundException(Map.of("adminId", "Could not find your admin details.")));
-
-        if (!admin.isZoneAdmin()) {
-            throw new BadRequestException(Map.of("adminId", "You are not assigned as an admin to any zone."));
-        }
-
-        boolean centerExists = zoneServiceClient.centerExists(centerId);
-        if (!centerExists) {
-            throw new NotFoundException(Map.of("centerId", "Center not found"));
-        }
-
-        boolean centerAssociatedWithZone = zoneServiceClient.isCenterAssociatedWithZone(admin.getZoneId(), centerId);
-
-        if (!centerAssociatedWithZone) {
-            throw new BadRequestException(Map.of("centerId", "This center does not belong to your zone."));
-        }
+    public void removeStaffFromCenter(UUID centerId, UUID staffId) throws NotFoundException, BadRequestException {
 
         User staff = userRepository.findById(staffId)
                 .orElseThrow(() -> new NotFoundException(Map.of("staffId", "Staff not found.")));
@@ -103,6 +75,11 @@ public class CenterStaffServiceImpl implements CenterStaffService {
 
         staff.setCenterId(null);
         userRepository.save(staff);
+
+        kafkaTemplate.send(KafkaTopics.STAFF_CENTER_UNASSIGNMENT, new StaffCenterUnassignmentEvent(
+                centerId,
+                staffId
+        ));
     }
 
 }

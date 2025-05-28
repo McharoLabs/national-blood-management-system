@@ -72,14 +72,7 @@ public class CenterStaffController {
             HttpServletRequest request
     ) {
 
-        UUID adminId = AuthUtil.getAuthenticatedUserId();
-
-        if (adminId == null) {
-            IdentityResponseDTO<Map<String, String>> response = IdentityResponseDTO.error(403, "You are forbidden to make these changes", request.getRequestURI());
-            return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-        }
-
-        centerStaffService.addStaffToCenter(centerId, centerStaffDTO.getStaffId(), adminId);
+        centerStaffService.addStaffToCenter(centerId, centerStaffDTO.getStaffId());
         IdentityResponseDTO<Map<String, String>> response = IdentityResponseDTO.ok(null, "Successfully staff added to the center", request.getRequestURI());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -125,13 +118,7 @@ public class CenterStaffController {
             HttpServletRequest request
     ) {
         UUID adminId = AuthUtil.getAuthenticatedUserId();
-
-        if (adminId == null) {
-            IdentityResponseDTO<Map<String, String>> response = IdentityResponseDTO.error(403, "You are forbidden to make these changes", request.getRequestURI());
-            return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-        }
-
-        centerStaffService.removeStaffFromCenter(centerId, centerStaffDTO.getStaffId(), adminId);
+        centerStaffService.removeStaffFromCenter(centerId, centerStaffDTO.getStaffId());
 
         IdentityResponseDTO<Map<String, String>> response = IdentityResponseDTO.ok(null, "Successfully user unassigned from center", request.getRequestURI());
         return new ResponseEntity<>(response, HttpStatus.OK);

@@ -23,4 +23,6 @@ public interface UserService {
     boolean staffExists(UUID staffId);
     UUID getZoneId(UUID staffId);
     Page<UserDTO> searchUsers(String name, String email, Pageable pageable);
+    List<UserDTO> availableStaffs(String name);
+    List<UserDTO> availableAdmin(String name);
 }

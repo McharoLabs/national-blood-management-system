@@ -2,19 +2,23 @@ package com.nbtsms.identity_service.service.impl;
 
 import com.nbtsms.identity_service.client.ZoneServiceClient;
 import com.nbtsms.identity_service.constant.KafkaTopics;
+import com.nbtsms.identity_service.dto.UserDTO;
 import com.nbtsms.identity_service.entity.User;
 import com.nbtsms.identity_service.event.AdminZoneAssignmentEvent;
 import com.nbtsms.identity_service.event.AdminZoneUnassignmentEvent;
 import com.nbtsms.identity_service.exception.BadRequestException;
 import com.nbtsms.identity_service.exception.ConflictException;
 import com.nbtsms.identity_service.exception.NotFoundException;
+import com.nbtsms.identity_service.mapper.UserMapper;
 import com.nbtsms.identity_service.repository.UserRepository;
 import com.nbtsms.identity_service.service.ZoneAdminService;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ZoneAdminServiceImpl implements ZoneAdminService {
@@ -50,6 +54,8 @@ public class ZoneAdminServiceImpl implements ZoneAdminService {
 
         user.setZoneId(zoneId);
 
+        userRepository.save(user);
+
         kafkaTemplate.send(KafkaTopics.ADMIN_ZONE_ASSIGNMENT, new AdminZoneAssignmentEvent(
                 user.getZoneId(),
                 user.getId(),
@@ -59,8 +65,6 @@ public class ZoneAdminServiceImpl implements ZoneAdminService {
                 user.getPhoneNumber(),
                 user.getEmail())
         );
-
-        userRepository.save(user);
     }
 
 
@@ -84,12 +88,12 @@ public class ZoneAdminServiceImpl implements ZoneAdminService {
 
         admin.setZoneId(null);
 
+        userRepository.save(admin);
+
         kafkaTemplate.send(KafkaTopics.ADMIN_ZONE_UNASSIGNMENT, new AdminZoneUnassignmentEvent(
                 zoneId,
                 admin.getId()
         ));
-
-        userRepository.save(admin);
     }
 
 }

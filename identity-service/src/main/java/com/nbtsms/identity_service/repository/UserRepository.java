@@ -67,5 +67,30 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             Pageable pageable
     );
 
+    @Query("""
+        SELECT u FROM User u
+        JOIN u.roles r
+        WHERE (
+            LOWER(CONCAT(u.firstName, ' ', COALESCE(u.middleName, ''), ' ', u.lastName))
+                LIKE LOWER(CONCAT('%', COALESCE(:name, ''), '%'))
+            AND u.centerId IS NULL
+            AND r IN ('COUNSELOR', 'ORGANIZER', 'LAB_TECHNICIAN')
+            AND 'SUPER_USER' NOT IN (SELECT r2 FROM u.roles r2)
+        )
+    """)
+    List<User> fetchAvailableStaff(@Param("name") String name);
+
+    @Query("""
+        SELECT u FROM User u
+        JOIN u.roles r
+        WHERE (
+            LOWER(CONCAT(u.firstName, ' ', COALESCE(u.middleName, ''), ' ', u.lastName))
+                LIKE LOWER(CONCAT('%', COALESCE(:name, ''), '%'))
+            AND u.zoneId IS NULL
+            AND r IN ('ADMIN', 'SUPER_USER')
+        )
+    """)
+    List<User> fetchAvailableAdmin(@Param("name") String name);
+
 
 }
