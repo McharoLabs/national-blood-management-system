@@ -20,9 +20,11 @@ import java.util.List;
 public class SecurityConfig {
 
     private final ReactiveJwtDecoder jwtDecoder;
+    private final CustomAuthenticationEntryPoint customEntryPoint;
 
-    public SecurityConfig(ReactiveJwtDecoder jwtDecoder) {
+    public SecurityConfig(ReactiveJwtDecoder jwtDecoder, CustomAuthenticationEntryPoint customEntryPoint) {
         this.jwtDecoder = jwtDecoder;
+        this.customEntryPoint = customEntryPoint;
     }
 
     @Bean
@@ -42,7 +44,11 @@ public class SecurityConfig {
                                 "/api-docs/**"
                         ).permitAll()
                         .anyExchange().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtDecoder(jwtDecoder)));
+                .oauth2ResourceServer(
+                        oauth2 -> oauth2.jwt(
+                                jwt -> jwt.jwtDecoder(jwtDecoder)
+                        ).authenticationEntryPoint(customEntryPoint)
+                );
 
         return http.build();
     }
