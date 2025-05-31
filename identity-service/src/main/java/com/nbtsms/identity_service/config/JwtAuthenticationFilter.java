@@ -1,5 +1,6 @@
 package com.nbtsms.identity_service.config;
 
+import com.nbtsms.identity_service.exception.InvalidTokenException;
 import com.nbtsms.identity_service.utils.JWTValidator;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -91,8 +92,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 httpRequest.setAttribute("userId", userId);
             }
         } catch (Exception ex) {
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
-            return;
+            throw new InvalidTokenException("Invalid JWT token");
         }
 
         chain.doFilter(httpRequest, httpResponse);
