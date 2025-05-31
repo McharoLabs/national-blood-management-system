@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpMethod;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -38,6 +39,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain chain
     )
             throws ServletException, IOException {
+
+        if (HttpMethod.OPTIONS.name().equalsIgnoreCase(httpRequest.getMethod())) {
+            chain.doFilter(httpRequest, httpResponse);
+            return;
+        }
+
 
         String requestUri = httpRequest.getRequestURI();
 
