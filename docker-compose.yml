@@ -1,148 +1,36 @@
-version: '3.9'
+version: '3.8'
 
 services:
-
-  postgres-identity:
-    container_name: postgres-identity
-    image: postgres
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    container_name: zookeeper
     environment:
-      POSTGRES_DB: identity_service_db
-      POSTGRES_USER: mcharo
-      POSTGRES_PASSWORD: mcharo
-      PGDATA: /data/postgres
-    volumes:
-      - ./postgres-identity:/data/postgres
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "5433:5432"
-    restart: unless-stopped
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  postgres-donor:
-    container_name: postgres-donor
-    image: postgres
-    environment:
-      POSTGRES_DB: donor_service_db
-      POSTGRES_USER: mcharo
-      POSTGRES_PASSWORD: mcharo
-      PGDATA: /data/postgres
-    volumes:
-      - ./postgres-donor:/data/postgres
-    ports:
-      - "5434:5432"
-    restart: unless-stopped
-
-  postgres-zone:
-    container_name: postgres-zone
-    image: postgres
-    environment:
-      POSTGRES_DB: zone_service_db
-      POSTGRES_USER: mcharo
-      POSTGRES_PASSWORD: mcharo
-      PGDATA: /data/postgres
-    volumes:
-      - ./postgres-zone:/data/postgres
-    ports:
-      - "5435:5432"
-    restart: unless-stopped
-
-  postgres-keycloak:
-    container_name: postgres-keycloak
-    image: postgres
-    environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: keycloak
-      PGDATA: /data/postgres
-    volumes:
-      - ./keycloak-postgres:/data/postgres
-    ports:
-      - "5437:5432"
-    restart: unless-stopped
-
-  keycloak:
-    image: quay.io/keycloak/keycloak:24.0.1
-    container_name: keycloak
-    command: [ "start-dev", "--import-realm" ]
-    environment:
-      DB_VENDOR: POSTGRES
-      DB_ADDR: postgres-keycloak
-      DB_DATABASE: keycloak
-      DB_USER: keycloak
-      DB_PASSWORD: keycloak
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-    ports:
-      - "8181:8080"
-    volumes:
-      - ./realms/:/opt/keycloak/data/import/
+  kafka-broker-1:
+    image: confluentinc/cp-kafka:7.0.1
+    hostname: kafka-broker-1
+    container_name: kafka-broker-1
     depends_on:
-      - postgres-keycloak
-    restart: unless-stopped
-
-  discovery-server:
-    image: seranise/discovery-server:latest
-    container_name: discovery-server
-    pull_policy: always
+      zookeeper:
+        condition: service_healthy
     ports:
-      - "8761:8761"
+      - "9092:9092"
+      - "19092:19092"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    restart: unless-stopped
-
-  api-gateway:
-    image: seranise/api-gateway:latest
-    container_name: api-gateway
-    pull_policy: always
-    ports:
-      - "8080:8080"
-    depends_on:
-      - discovery-server
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=TRACE
-    restart: unless-stopped
-
-  identity-service:
-    image: seranise/identity-service:latest
-    container_name: identity-service
-    pull_policy: always
-    ports:
-      - "8081:8081"
-    depends_on:
-      - postgres-identity
-      - api-gateway
-      - discovery-server
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-identity:5432/identity_service_db
-    restart: unless-stopped
-
-  donor-service:
-    image: seranise/donor-service:latest
-    container_name: donor-service
-    pull_policy: always
-    ports:
-      - "8082:8082"
-    depends_on:
-      - postgres-donor
-      - api-gateway
-      - discovery-server
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-donor:5432/donor_service_db
-    restart: unless-stopped
-
-  zone-service:
-    image: seranise/zone-service:latest
-    container_name: zone-service
-    pull_policy: always
-    ports:
-      - "8083:8083"
-    depends_on:
-      - postgres-zone
-      - api-gateway
-      - identity-service
-      - discovery-server
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-zone:5432/zone_service_db
-    restart: unless-stopped
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka-broker-1:19092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:19092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
