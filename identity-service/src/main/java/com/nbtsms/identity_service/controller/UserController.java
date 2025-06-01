@@ -85,6 +85,59 @@ public class UserController {
 
     }
 
+    @PutMapping
+    @Operation(
+            summary = "Update an existing user",
+            description = "Allows admin or super admin to update an existing user’s profile information."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "User updated successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = IdentityResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Validation failed or bad request",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
+            )
+    })
+    public ResponseEntity<IdentityResponseDTO<Map<String, Object>>> update(
+            @Valid @RequestBody UpdateUserDTO updateUserDTO,
+            HttpServletRequest request
+    ) {
+        UUID updatedUserId = userService.update(updateUserDTO);
+        IdentityResponseDTO<Map<String, Object>> response = IdentityResponseDTO.ok(
+                Map.of("userId", updatedUserId),
+                "User updated successfully",
+                request.getRequestURI()
+        );
+        return ResponseEntity.ok(response);
+    }
+
+
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
     @Operation(
@@ -119,6 +172,38 @@ public class UserController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<UserDTO> userPage =  userService.getUsers(name, pageable);
         IdentityResponseDTO<Page<UserDTO>> response = IdentityResponseDTO.ok(userPage, "Users fetched successfully", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("{userId}/user")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
+    @Operation(
+            summary = "Get all users",
+            description = "Retrieve the list of all users"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Users fetched successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = IdentityUserPageResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error.",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
+            )
+    })
+    public ResponseEntity<IdentityResponseDTO<UserDTO>> getUser(
+            HttpServletRequest request,
+            @PathVariable UUID userId
+    ) {
+        IdentityResponseDTO<UserDTO> response = IdentityResponseDTO.ok(userService.getUser(userId), "User fetched successfully", request.getRequestURI());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -207,7 +292,7 @@ public class UserController {
             HttpServletRequest request
     ) {
         userService.assignRole(assignRole, userId);
-        IdentityResponseDTO<Map<String, Object>> response = IdentityResponseDTO.ok(null, "Role added successfully", request.getRequestURI());
+        IdentityResponseDTO<Map<String, Object>> response = IdentityResponseDTO.ok(null, "Role changed successfully", request.getRequestURI());
         return ResponseEntity.ok(response);
     }
 
