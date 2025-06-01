@@ -2,6 +2,7 @@ package com.nbtsms.identity_service.service.impl;
 
 import com.nbtsms.identity_service.dto.AssignRole;
 import com.nbtsms.identity_service.dto.CreateUserDTO;
+import com.nbtsms.identity_service.dto.UpdateUserDTO;
 import com.nbtsms.identity_service.dto.UserDTO;
 import com.nbtsms.identity_service.entity.User;
 import com.nbtsms.identity_service.enums.Role;
@@ -52,7 +53,7 @@ public class UserServiceImpl implements UserService {
             throw new ConflictException(errors);
         }
 
-        User user = AuthenticationMapper.toEntity(createUserDTO);
+        User user = UserMapper.toEntity(createUserDTO);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRoles(List.of(Role.USER));
 
@@ -85,8 +86,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> getUser(UUID id) {
-        return userRepository.findById(id);
+    public UserDTO getUser(UUID id) throws NotFoundException {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(Map.of("detail", "Staff not found")));
+        return UserMapper.toResponse(user);
     }
 
     @Override
@@ -95,7 +98,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId).orElse(null);
 
         if (user == null) {
-            errors.put("user", "User not found");
+            errors.put("detail", "User not found");
             throw new NotFoundException(errors);
         }
 
@@ -105,12 +108,12 @@ public class UserServiceImpl implements UserService {
         incomingRoles.add(Role.USER);
 
         if (incomingRoles.contains(Role.SUPER_USER)) {
-            errors.put("roles", "Cannot assign super admin role.");
+            errors.put("detail", "Cannot assign super admin role.");
             throw new BadRequestException(errors);
         }
 
         if (currentRoles.equals(incomingRoles)) {
-            errors.put("roles", "No changes were made. Same roles already assigned.");
+            errors.put("detail", "No changes were made. Same roles already assigned.");
             throw new BadRequestException(errors);
         }
 
@@ -133,6 +136,45 @@ public class UserServiceImpl implements UserService {
                 .map(UserMapper::toResponse)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public UUID update(UpdateUserDTO updateUserDTO) throws NotFoundException, BadRequestException {
+        Optional<User> existingUserOpt = userRepository.findById(updateUserDTO.getId());
+
+        if (existingUserOpt.isEmpty()) {
+            throw new NotFoundException(Map.of("detail","User with ID " + updateUserDTO.getId() + " not found."));
+        }
+
+        User existingUser = existingUserOpt.get();
+
+        userRepository.findByEmail(updateUserDTO.getEmail()).ifPresent(conflictUser -> {
+            if (!conflictUser.getId().equals(updateUserDTO.getId())) {
+                throw new BadRequestException(Map.of("email", "Email is already in use by another user."));
+            }
+        });
+
+        userRepository.findByPhoneNumber(updateUserDTO.getPhoneNumber()).ifPresent(conflictUser -> {
+            if (!conflictUser.getId().equals(updateUserDTO.getId())) {
+                throw new BadRequestException(Map.of("phoneNumber", "Phone number is already in use by another user."));
+            }
+        });
+
+        // Update fields
+        existingUser.setFirstName(updateUserDTO.getFirstName());
+        existingUser.setMiddleName(updateUserDTO.getMiddleName());
+        existingUser.setLastName(updateUserDTO.getLastName());
+        existingUser.setEmail(updateUserDTO.getEmail());
+        existingUser.setPhoneNumber(updateUserDTO.getPhoneNumber());
+
+        try {
+            userRepository.save(existingUser);
+            return existingUser.getId();
+        } catch (Exception e) {
+            logger.error("Error updating user with ID {}: {}", updateUserDTO.getId(), e.getMessage(), e);
+            throw new BadRequestException(Map.of("detail", "An unexpected error occurred while updating the user."));
+        }
+    }
+
 
     @Override
     public boolean staffExists(UUID staffId) {
