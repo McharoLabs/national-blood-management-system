@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,6 +60,19 @@ public class RegionController {
         ZoneResponseWrapperDTO<Page<RegionResponseDTO>> response = ZoneResponseWrapperDTO.ok(
                 regionService.getAllByZone(name, zoneId, pageable),
                 "Regions retrieved successful",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("region/{zoneId}/all")
+    public ResponseEntity<ZoneResponseWrapperDTO<List<RegionResponseDTO>>> getRegionsByZoneId(
+            @PathVariable UUID zoneId,
+            HttpServletRequest request
+    ) {
+        ZoneResponseWrapperDTO<List<RegionResponseDTO>> response = ZoneResponseWrapperDTO.ok(
+                regionService.getRegionsByZone(zoneId),
+                "Regions retrieved successfully",
                 request.getRequestURI()
         );
         return new ResponseEntity<>(response, HttpStatus.OK);

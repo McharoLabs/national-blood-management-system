@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -53,6 +54,21 @@ public class CenterController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping("region/{regionId}/all")
+    public ResponseEntity<ZoneResponseWrapperDTO<List<CenterResponseDTO>>> getAllCentersByRegion(
+            @PathVariable UUID regionId,
+            HttpServletRequest request
+    ) {
+        List<CenterResponseDTO> centers = centerService.getCentersByRegion(regionId);
+        ZoneResponseWrapperDTO<List<CenterResponseDTO>> response = ZoneResponseWrapperDTO.ok(
+                centers,
+                "Centers retrieved successfully",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @PostMapping
     public ResponseEntity<ZoneResponseWrapperDTO<Map<String, Object>>> createCenter(
@@ -85,6 +101,19 @@ public class CenterController {
 
         return new ResponseEntity<>(response, HttpStatus.OK);
 
+    }
+
+    @GetMapping("{centerId}/center")
+    public ResponseEntity<ZoneResponseWrapperDTO<CenterResponseDTO>> getCenter(
+            @PathVariable UUID centerId,
+            HttpServletRequest request
+    ) {
+        ZoneResponseWrapperDTO<CenterResponseDTO> response = ZoneResponseWrapperDTO.ok(
+                centerService.getCenter(centerId),
+                "Center retrieved successfully",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('ROLE_INTERNAL')")

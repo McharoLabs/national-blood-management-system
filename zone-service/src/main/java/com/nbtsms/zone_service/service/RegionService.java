@@ -14,7 +14,7 @@ import java.util.UUID;
 public interface RegionService  {
     UUID create(CreateRegionDTO createRegionDTO) throws ConflictException, BadRequestException, NotFoundException;
     boolean regionExists(UUID regionId);
-    List<RegionResponseDTO> getRegions();
+    List<RegionResponseDTO> getRegionsByZone(UUID zoneId);
     Page<RegionResponseDTO> getAllByZone(String name, UUID zoneId, Pageable pageable) throws NotFoundException;
     RegionResponseDTO getRegionById(UUID regionId) throws NotFoundException;
 }

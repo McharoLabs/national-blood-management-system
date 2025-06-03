@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,4 +32,11 @@ public interface CenterRepository extends JpaRepository<Center, UUID> {
             @Param("name") String name,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT c FROM Center c
+        WHERE c.region.id = :regionId
+    """)
+    List<Center> findAllByRegionId(@Param("regionId") UUID regionId);
+
 }

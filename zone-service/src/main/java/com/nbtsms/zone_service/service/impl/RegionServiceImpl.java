@@ -68,9 +68,9 @@ public class RegionServiceImpl implements RegionService {
     }
 
     @Override
-    public List<RegionResponseDTO> getRegions() {
-        List<Region> regions = regionRepository.findAll();
-        return regions.stream()
+    public List<RegionResponseDTO> getRegionsByZone(UUID zoneId) {
+        return regionRepository.findByZoneId(zoneId)
+                .stream()
                 .map(RegionMapper::toResponse)
                 .collect(Collectors.toList());
     }

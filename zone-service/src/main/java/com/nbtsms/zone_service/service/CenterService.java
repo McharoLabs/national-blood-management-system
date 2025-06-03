@@ -14,7 +14,7 @@ import java.util.UUID;
 public interface CenterService {
     UUID create(CreateCenterDTO createCenterDTO) throws ConflictException, NotFoundException, BadRequestException;
     boolean centerExists(UUID centerId);
-    List<CenterResponseDTO> getCenters(UUID staffId) throws NotFoundException, BadRequestException;
+    List<CenterResponseDTO> getCentersByRegion(UUID regionId) throws NotFoundException, BadRequestException;
     CenterResponseDTO getCenter(UUID centerId) throws NotFoundException;
     Page<CenterResponseDTO> getAllCenterByZoneId(UUID zoneId, Pageable pageable) throws NotFoundException, BadRequestException;
     Page<CenterResponseDTO> getAllByRegion(String name, UUID regionId, Pageable pageable) throws NotFoundException;

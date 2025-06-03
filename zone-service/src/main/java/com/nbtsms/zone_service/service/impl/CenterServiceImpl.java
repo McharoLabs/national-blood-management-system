@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Transactional(isolation = Isolation.SERIALIZABLE)
 @Service
@@ -70,9 +71,12 @@ public class CenterServiceImpl implements CenterService {
     }
 
     @Override
-    public List<CenterResponseDTO> getCenters(UUID staffId) throws NotFoundException, BadRequestException {
+    public List<CenterResponseDTO> getCentersByRegion(UUID regionId) throws NotFoundException, BadRequestException {
 
-        return null;
+        return centerRepository.findAllByRegionId(regionId)
+                .stream()
+                .map(CenterMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
