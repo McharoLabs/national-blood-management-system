@@ -31,7 +31,7 @@ public class CenterStaffController {
         this.centerStaffService = centerStaffService;
     }
 
-    @PatchMapping("add")
+    @PostMapping("add")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(
             summary = "Add staff to center",
@@ -77,7 +77,7 @@ public class CenterStaffController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PatchMapping("remove")
+    @PostMapping("remove")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(
             summary = "Remove staff from center",
@@ -117,7 +117,6 @@ public class CenterStaffController {
             @Valid @RequestBody CenterStaffDTO centerStaffDTO,
             HttpServletRequest request
     ) {
-        UUID adminId = AuthUtil.getAuthenticatedUserId();
         centerStaffService.removeStaffFromCenter(centerId, centerStaffDTO.getStaffId());
 
         IdentityResponseDTO<Map<String, String>> response = IdentityResponseDTO.ok(null, "Successfully user unassigned from center", request.getRequestURI());

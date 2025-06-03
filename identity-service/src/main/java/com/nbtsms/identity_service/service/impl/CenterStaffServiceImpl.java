@@ -39,14 +39,14 @@ public class CenterStaffServiceImpl implements CenterStaffService {
     public void addStaffToCenter(UUID centerId, UUID staffId) throws NotFoundException, ConflictException, BadRequestException {
 
         User staff = userRepository.findById(staffId)
-                .orElseThrow(() -> new NotFoundException(Map.of("staffId", "Staff not found.")));
+                .orElseThrow(() -> new NotFoundException(Map.of("detail", "Staff not found.")));
 
         if (staff.hasCounselorLabTechOrOrganizerRole()) {
-            throw new BadRequestException(Map.of("staffId", "Staff must have one of role: " + Set.of(Role.COUNSELOR, Role.ORGANIZER, Role.LAB_TECHNICIAN)));
+            throw new BadRequestException(Map.of("detail", "Staff must have one of role: " + Set.of(Role.COUNSELOR, Role.ORGANIZER, Role.LAB_TECHNICIAN)));
         }
 
         if (staff.isAssignedToCenter()) {
-            throw new BadRequestException(Map.of("staffId", "Staff is already assigned to a center."));
+            throw new BadRequestException(Map.of("detail", "Staff is already assigned to a center."));
         }
 
         staff.setCenterId(centerId);
@@ -67,10 +67,10 @@ public class CenterStaffServiceImpl implements CenterStaffService {
     public void removeStaffFromCenter(UUID centerId, UUID staffId) throws NotFoundException, BadRequestException {
 
         User staff = userRepository.findById(staffId)
-                .orElseThrow(() -> new NotFoundException(Map.of("staffId", "Staff not found.")));
+                .orElseThrow(() -> new NotFoundException(Map.of("detail", "Staff not found.")));
 
         if (!centerId.equals(staff.getCenterId())) {
-            throw new BadRequestException(Map.of("centerId", "Staff is not assigned to this center."));
+            throw new BadRequestException(Map.of("detail", "Staff is not assigned to this center."));
         }
 
         staff.setCenterId(null);

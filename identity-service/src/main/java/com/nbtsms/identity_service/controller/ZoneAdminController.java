@@ -30,7 +30,7 @@ public class ZoneAdminController {
         this.zoneAdminService = zoneAdminService;
     }
 
-    @PatchMapping("assign")
+    @PostMapping("assign")
     @PreAuthorize("hasAuthority('ROLE_SUPER_USER')")
     @Operation(
             summary = "Assign admin to zone",
@@ -77,7 +77,7 @@ public class ZoneAdminController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PatchMapping("remove")
+    @PostMapping("remove")
     @PreAuthorize("hasAuthority('ROLE_SUPER_USER')")
     @Operation(
             summary = "Unassign admin from zone",
