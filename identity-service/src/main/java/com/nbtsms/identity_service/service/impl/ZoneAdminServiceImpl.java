@@ -37,13 +37,6 @@ public class ZoneAdminServiceImpl implements ZoneAdminService {
         if (user.isZoneAdmin()) {
             throw new BadRequestException(Map.of("detail", "User already assigned to a zone"));
         }
-/*
-        boolean zoneExists = zoneServiceClient.zoneExists(zoneId);
-        if (!zoneExists) {
-            throw new NotFoundException(Map.of("zoneId", "Zone not found"));
-        }
-
- */
 
         user.setZoneId(zoneId);
 

@@ -85,8 +85,9 @@ public class CenterController {
 
     @GetMapping("{zoneId}/zone")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ZoneResponseWrapperDTO<Page<CenterResponseDTO>>> getAllCenters(
-            @Valid @RequestBody ZoneIdDTO zoneIdDTO,
+    public ResponseEntity<ZoneResponseWrapperDTO<Page<CenterResponseDTO>>> getAllCentersByZone(
+            @PathVariable UUID zoneId,
+            @RequestParam(required = false) String name,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "name") String sortBy,
@@ -94,7 +95,7 @@ public class CenterController {
             ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         ZoneResponseWrapperDTO<Page<CenterResponseDTO>> response = ZoneResponseWrapperDTO.ok(
-                centerService.getAllCenterByZoneId(zoneIdDTO.getZoneId(), pageable),
+                centerService.getAllCenterByZoneId(zoneId, name, pageable),
                 "Center retrieved successful",
                 request.getRequestURI()
         );

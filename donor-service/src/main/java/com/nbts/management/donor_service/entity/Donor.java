@@ -11,6 +11,8 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -21,64 +23,69 @@ import java.util.UUID;
 @Entity
 @Table(name = "donors")
 public class Donor {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @OneToMany(mappedBy = "donor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Appointment> appointments = new ArrayList<>();
+
+    @Column(unique = true, nullable = false)
     private String fullName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column()
     private Gender gender;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column()
     private MaritalStatus maritalStatus;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column()
     private PolygamousMarriage polygamousMarriage;
 
-    @Column(nullable = true)
+    @Column()
     private Integer numberOfSpouses;
 
-    @Column(nullable = false)
+    @Column()
     private LocalDate dateOfBirth;
 
-    @Column(nullable = false)
+    @Column()
     private Integer age;
 
-    @Column(nullable = false)
+    @Column()
     private String nationality;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String phoneNumber;
 
-    @Column(nullable = false)
-    private String Region;
+    @Column()
+    private String region;
 
-    @Column(nullable = false)
+    @Column()
     private String district;
 
-    @Column(nullable = false)
+    @Column()
     private String ward;
 
-    @Column(nullable = false)
+    @Column()
     private String street;
 
-    @Column(nullable = false)
+    @Column()
     private String address;
 
-    @Column(nullable = true)
+    @Column()
     private String educationLevel;
 
-    @Column(nullable = false)
+    @Column()
     private String occupation;
 
-    @Column(nullable = true)
+    @Column()
     private LocalDateTime lastDonation;
+
+    @Column(nullable = false)
+    private boolean authSaved = false;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

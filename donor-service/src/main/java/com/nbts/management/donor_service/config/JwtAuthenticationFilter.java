@@ -6,7 +6,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,7 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/error",
             "/swagger-ui",
             "/v3/api-docs",
-            "/auth/"
+            "/auth/",
+            "/appointments/create"
     );
 
     public JwtAuthenticationFilter(PublicKey publicKey) {

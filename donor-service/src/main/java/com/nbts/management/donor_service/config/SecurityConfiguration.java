@@ -54,7 +54,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(
                                 "/public/**",
-                                "/error"
+                                "/error",
+                                "/appointments/create"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

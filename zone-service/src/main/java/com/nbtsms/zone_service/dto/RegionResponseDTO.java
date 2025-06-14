@@ -16,4 +16,5 @@ import java.util.UUID;
 public class RegionResponseDTO {
     private UUID id;
     private String name;
+    private int totalCenter;
 }

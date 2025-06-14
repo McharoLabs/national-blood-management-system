@@ -87,12 +87,12 @@ public class CenterServiceImpl implements CenterService {
     }
 
     @Override
-    public Page<CenterResponseDTO> getAllCenterByZoneId(UUID zoneId, Pageable pageable) throws NotFoundException, BadRequestException {
+    public Page<CenterResponseDTO> getAllCenterByZoneId(UUID zoneId, String name, Pageable pageable) throws NotFoundException, BadRequestException {
 
 
         Zone zone = zoneRepository.findById(zoneId).orElseThrow(() -> new NotFoundException(Map.of("detail", "Zone you are assigned to, not found")));
 
-        return centerRepository.findByRegionZoneId(zone.getId(), pageable)
+        return centerRepository.findByZoneIdAndOptionalNameContainingIgnoreCase(zone.getId(), name, pageable)
                 .map(CenterMapper::toResponse);
     }
 

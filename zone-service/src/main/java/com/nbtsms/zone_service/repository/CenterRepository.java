@@ -18,6 +18,18 @@ public interface CenterRepository extends JpaRepository<Center, UUID> {
 
     @Query("""
         SELECT c FROM Center c
+        WHERE c.region.zone.id = :zoneId
+        AND (LOWER(c.name) LIKE LOWER(CONCAT('%', COALESCE(:name, ''), '%')))
+    """)
+    Page<Center> findByZoneIdAndOptionalNameContainingIgnoreCase(
+            @Param("zoneId") UUID zoneId,
+            @Param("name") String name,
+            Pageable pageable
+    );
+
+
+    @Query("""
+        SELECT c FROM Center c
         WHERE LOWER(c.name) = LOWER(:name)
     """)
     Optional<Center> findByNameIgnoreCase(@Param("name") String name);

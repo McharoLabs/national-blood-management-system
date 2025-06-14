@@ -3,17 +3,26 @@ package com.nbts.management.donor_service.mapper;
 import com.nbts.management.donor_service.dto.CreateDonorDTO;
 import com.nbts.management.donor_service.dto.DonorResponseDTO;
 import com.nbts.management.donor_service.entity.Donor;
+import com.nbts.management.donor_service.enums.PolygamousMarriage;
+import com.nbts.management.donor_service.exception.BadRequestException;
+
+import java.util.Map;
 
 public class DonorMapper {
 
     public static Donor toEntity(CreateDonorDTO dto) {
+        if (PolygamousMarriage.YES.equals(dto.getPolygamousMarriage())) {
+            if (dto.getNumberOfSpouses() == null || dto.getNumberOfSpouses() <= 1) {
+                throw new BadRequestException(Map.of(
+                        "detail", "Number of spouses must be greater than one for polygamous marriage"
+                ));
+            }
+        }
+
         Donor donor = new Donor();
-
         donor.setFullName(dto.getFullName());
-
         donor.setMaritalStatus(dto.getMaritalStatus());
         donor.setPolygamousMarriage(dto.getPolygamousMarriage());
-
         donor.setNumberOfSpouses(dto.getNumberOfSpouses());
         donor.setDateOfBirth(dto.getDateOfBirth());
         donor.setAge(dto.getAge());
@@ -30,6 +39,7 @@ public class DonorMapper {
 
         return donor;
     }
+
 
     public static DonorResponseDTO toResponseDTO(Donor donor) {
         return DonorResponseDTO.builder()
@@ -51,7 +61,6 @@ public class DonorMapper {
                 .educationLevel(donor.getEducationLevel())
                 .occupation(donor.getOccupation())
                 .lastDonation(donor.getLastDonation())
-                .createdAt(donor.getCreatedAt())
                 .build();
     }
 }

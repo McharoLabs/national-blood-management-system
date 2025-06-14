@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,8 @@ public interface DonorRepository extends JpaRepository<Donor, UUID> {
     Optional<Donor> findByFullNameIgnoreCase(String fullName);
 
     Optional<Donor> findByPhoneNumber(String phoneNumber);
+
+    List<Donor> findAllByAuthSavedFalse();
 
     @Query("""
         SELECT d FROM Donor d
@@ -26,5 +29,12 @@ public interface DonorRepository extends JpaRepository<Donor, UUID> {
             @Param("fullName") String fullName,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT d FROM Donor d
+        WHERE FUNCTION('RIGHT', d.phoneNumber, 9) = :lastNineDigits
+    """)
+    Optional<Donor> findByLastNinePhoneDigits(@Param("lastNineDigits") String lastNineDigits);
+
 
 }

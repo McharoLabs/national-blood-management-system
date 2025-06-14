@@ -94,6 +94,8 @@ public class JwtServiceImpl implements JwtService {
         userClaims.put("lastName", user.getLastName());
         userClaims.put("email", user.getEmail());
         userClaims.put("phoneNumber", user.getPhoneNumber());
+        userClaims.put("zoneId", user.getZoneId());
+        userClaims.put("centerId", user.getCenterId());
 
         claims.put("roles", roleNames);
         claims.put("user", userClaims);

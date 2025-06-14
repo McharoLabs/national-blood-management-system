@@ -2,10 +2,10 @@ package com.nbts.management.donor_service.controller;
 
 import com.nbts.management.donor_service.dto.CreateDonorDTO;
 import com.nbts.management.donor_service.dto.DonorResponseDTO;
+import com.nbts.management.donor_service.dto.DonorServiceResponseDTO;
 import com.nbts.management.donor_service.enums.Gender;
-import com.nbts.management.donor_service.exception.ConflictException;
-import com.nbts.management.donor_service.exception.NotFoundException;
 import com.nbts.management.donor_service.service.impl.DonorServiceImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("/donors")
+@RequestMapping("")
 public class DonorController {
 
     private final DonorServiceImpl donorService;
@@ -28,50 +28,49 @@ public class DonorController {
         this.donorService = donorService;
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<Map<String, Object>> create(@Valid @RequestBody CreateDonorDTO createDonorDTO) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            UUID donorId = donorService.createDonor(createDonorDTO);
-            response.put("donorId", donorId);
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (ConflictException e) {
-            response.putAll(e.getErrorMessages());
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-        } catch (Exception e) {
-            response.put("detail", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @PostMapping()
+    public ResponseEntity<DonorServiceResponseDTO<Map<String, Object>>> create(
+            @Valid @RequestBody CreateDonorDTO createDonorDTO,
+            HttpServletRequest request
+    ) {
+        DonorServiceResponseDTO<Map<String, Object>> response = DonorServiceResponseDTO.ok(
+                Map.of("donorId", donorService.createDonor(createDonorDTO)),
+                "Donor created successfully",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAllDonors(
+    public ResponseEntity<DonorServiceResponseDTO<Page<DonorResponseDTO>>> getAllDonors(
             @RequestParam(required = false) String fullName,
             @RequestParam(required = false) Gender gender,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "fullName") String sortBy
+            @RequestParam(defaultValue = "fullName") String sortBy,
+            HttpServletRequest request
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        Page<DonorResponseDTO> donorsPage = donorService.getAllDonors(pageable, fullName, gender);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", donorsPage.getContent());
-        response.put("currentPage", donorsPage.getNumber());
-        response.put("totalItems", donorsPage.getTotalElements());
-        response.put("totalPages", donorsPage.getTotalPages());
+        DonorServiceResponseDTO<Page<DonorResponseDTO>> response = DonorServiceResponseDTO.ok(
+                donorService.getAllDonors(pageable, fullName, gender),
+                "Donor fetched successfully",
+                request.getRequestURI()
+        );
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/{donorId}")
-    public ResponseEntity<?> getDonorById(@PathVariable UUID donorId) {
-        try {
-            DonorResponseDTO donor = donorService.getDonor(donorId);
-            return ResponseEntity.ok(donor);
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getErrorMessages());
-        }
+    @GetMapping("/{donorId}/donor")
+    public ResponseEntity<DonorServiceResponseDTO<DonorResponseDTO>> getDonorById(
+            @PathVariable UUID donorId,
+            HttpServletRequest request
+    ) {
+        DonorServiceResponseDTO<DonorResponseDTO> response = DonorServiceResponseDTO.ok(
+                donorService.getDonor(donorId),
+                "Donor retrieved successfully",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('ROLE_INTERNAL')")

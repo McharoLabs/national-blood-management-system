@@ -16,7 +16,7 @@ public interface CenterService {
     boolean centerExists(UUID centerId);
     List<CenterResponseDTO> getCentersByRegion(UUID regionId) throws NotFoundException, BadRequestException;
     CenterResponseDTO getCenter(UUID centerId) throws NotFoundException;
-    Page<CenterResponseDTO> getAllCenterByZoneId(UUID zoneId, Pageable pageable) throws NotFoundException, BadRequestException;
+    Page<CenterResponseDTO> getAllCenterByZoneId(UUID zoneId, String name, Pageable pageable) throws NotFoundException, BadRequestException;
     Page<CenterResponseDTO> getAllByRegion(String name, UUID regionId, Pageable pageable) throws NotFoundException;
     boolean centerBelongToZone(UUID zoneId, UUID centerId);
 }

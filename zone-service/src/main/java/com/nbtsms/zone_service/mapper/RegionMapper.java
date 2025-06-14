@@ -17,6 +17,7 @@ public class RegionMapper {
 
         regionResponseDTO.setId(region.getId());
         regionResponseDTO.setName(region.getName());
+        regionResponseDTO.setTotalCenter(region.getCenters().size());
 
         return regionResponseDTO;
     }

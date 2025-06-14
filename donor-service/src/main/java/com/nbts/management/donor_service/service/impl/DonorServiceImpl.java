@@ -4,6 +4,7 @@ import com.nbts.management.donor_service.dto.CreateDonorDTO;
 import com.nbts.management.donor_service.dto.DonorResponseDTO;
 import com.nbts.management.donor_service.entity.Donor;
 import com.nbts.management.donor_service.enums.Gender;
+import com.nbts.management.donor_service.event.DonorAuthCreatedEvent;
 import com.nbts.management.donor_service.exception.BadRequestException;
 import com.nbts.management.donor_service.exception.ConflictException;
 import com.nbts.management.donor_service.exception.NotFoundException;
@@ -16,10 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,5 +78,22 @@ public class DonorServiceImpl implements DonorService {
                         .findById(donorId)
                         .orElseThrow(() -> new NotFoundException(Map.of("detail", "Donor not found")))
         );
+    }
+
+    @Override
+    public void setDonorAuthSavedTrue(DonorAuthCreatedEvent authCreatedEvent) {
+        donorRepository.findByPhoneNumber(authCreatedEvent.getPhoneNumber())
+                .ifPresent(donor -> {
+                    donor.setAuthSaved(true);
+                    donorRepository.save(donor);
+                });
+    }
+
+    @Override
+    public List<DonorResponseDTO> getAllByAuthSavedFalse() {
+        return donorRepository.findAllByAuthSavedFalse()
+                .stream()
+                .map(DonorMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 }

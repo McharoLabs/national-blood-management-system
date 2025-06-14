@@ -1,5 +1,6 @@
 package com.nbtsms.zone_service.controller;
 
+import com.nbtsms.zone_service.dto.AdminResponseDTO;
 import com.nbtsms.zone_service.dto.CreateZoneDTO;
 import com.nbtsms.zone_service.dto.ZoneResponseDTO;
 import com.nbtsms.zone_service.dto.ZoneResponseWrapperDTO;
@@ -7,6 +8,10 @@ import com.nbtsms.zone_service.service.impl.ZoneServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +27,28 @@ public class ZoneController {
     @Autowired
     public ZoneController(ZoneServiceImpl zoneService) {
         this.zoneService = zoneService;
+    }
+
+    @GetMapping("{zoneId}/admins")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
+    public ResponseEntity<ZoneResponseWrapperDTO<Page<AdminResponseDTO>>> getAdminsByZone(
+            @PathVariable UUID zoneId,
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "lastName") String sortBy,
+            HttpServletRequest request
+    )  {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+
+        ZoneResponseWrapperDTO<Page<AdminResponseDTO>> response = ZoneResponseWrapperDTO.ok(
+                zoneService.zoneAdmins(zoneId, name, pageable),
+                "Admins retrieved successfully",
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("hasAuthority('ROLE_SUPER_USER')")
