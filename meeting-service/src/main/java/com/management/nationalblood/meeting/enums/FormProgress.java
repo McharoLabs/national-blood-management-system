@@ -6,19 +6,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum FormProgress {
-    NOT_STARTED("Not Started"),
-    PRELIMINARY_COMPLETED("Preliminary Completed"),
-    PHYSICAL_EXAM_COMPLETED("Physical Exam Completed"),
-    HAEMATOLOGICAL_TESTS_COMPLETED("Haematological Tests Completed"),
-    BLOOD_PRESSURE_PULSE_COMPLETED("Blood Pressure & Pulse Completed"),
-    FINAL_EVALUATION_COMPLETED("Final Evaluation Completed"),
-    BLOOD_COLLECTED("Blood Collected"),
-    COMPLETED("Completed");
-
-    private final String description;
-
-    @Override
-    public String toString() {
-        return description;
-    }
+    NOT_STARTED,
+    PRELIMINARY_COMPLETED,
+    PHYSICAL_EXAM_COMPLETED,
+    HAEMATOLOGICAL_TESTS_COMPLETED,
+    BLOOD_PRESSURE_PULSE_COMPLETED,
+    FINAL_EVALUATION_COMPLETED,
+    BLOOD_COLLECTED,
+    COMPLETED;
 }

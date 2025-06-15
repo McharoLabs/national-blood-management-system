@@ -1,6 +1,5 @@
 package com.nbtsms.identity_service.service.impl;
 
-import com.nbtsms.identity_service.client.ZoneServiceClient;
 import com.nbtsms.identity_service.constant.KafkaTopics;
 import com.nbtsms.identity_service.dto.UserDTO;
 import com.nbtsms.identity_service.entity.User;
@@ -80,6 +79,14 @@ public class CenterStaffServiceImpl implements CenterStaffService {
                 centerId,
                 staffId
         ));
+    }
+
+    @Override
+    public List<UserDTO> centerStaffs(UUID centerId) {
+        return userRepository.findCenterStaffByCenterId(centerId)
+                .stream()
+                .map(UserMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
 }

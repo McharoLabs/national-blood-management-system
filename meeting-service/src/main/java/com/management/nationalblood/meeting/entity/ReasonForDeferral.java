@@ -1,6 +1,6 @@
 package com.management.nationalblood.meeting.entity;
 
-import com.nbtsms.national_blood_management_system.questionnaire.enums.MedicalReason;
+import com.management.nationalblood.meeting.enums.MedicalReason;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

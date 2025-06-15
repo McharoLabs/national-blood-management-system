@@ -5,6 +5,7 @@ import com.nbtsms.identity_service.dto.CreateUserDTO;
 import com.nbtsms.identity_service.dto.UpdateUserDTO;
 import com.nbtsms.identity_service.dto.UserDTO;
 import com.nbtsms.identity_service.entity.User;
+import com.nbtsms.identity_service.event.StaffAssignedEvent;
 import com.nbtsms.identity_service.exception.BadRequestException;
 import com.nbtsms.identity_service.exception.ConflictException;
 import com.nbtsms.identity_service.exception.NotFoundException;
@@ -27,4 +28,5 @@ public interface UserService {
     List<UserDTO> availableStaffs(String name);
     List<UserDTO> availableAdmin(String name);
     UUID update(UpdateUserDTO updateUserDTO) throws NotFoundException, BadRequestException;
+    void assignedStaffToMeeting(StaffAssignedEvent event);
 }

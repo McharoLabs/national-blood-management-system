@@ -1,6 +1,5 @@
 package com.management.nationalblood.meeting.entity;
 
-import com.nbtsms.national_blood_management_system.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,7 +33,5 @@ public class PhysicalExamination {
     @Column(nullable = false)
     private String scaleUsedToMeasure;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    private User measuredBy;
+    private UUID measuredBy;
 }

@@ -1,7 +1,6 @@
 package com.management.nationalblood.meeting.entity;
 
-import com.nbtsms.national_blood_management_system.questionnaire.enums.DonorStatus;
-import com.nbtsms.national_blood_management_system.user.entity.User;
+import com.management.nationalblood.meeting.enums.DonorStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,7 +39,5 @@ public class FinalDonorEvaluation {
 
     private String comment;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    private User counselor;
+    private UUID counselor;
 }

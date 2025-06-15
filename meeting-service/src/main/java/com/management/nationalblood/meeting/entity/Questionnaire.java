@@ -1,7 +1,6 @@
 package com.management.nationalblood.meeting.entity;
 
-import com.nbtsms.national_blood_management_system.meeting.entity.Meeting;
-import com.nbtsms.national_blood_management_system.questionnaire.enums.FormProgress;
+import com.management.nationalblood.meeting.enums.FormProgress;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,9 +22,7 @@ public class Questionnaire {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    private Donor donor;
+    private UUID donor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)

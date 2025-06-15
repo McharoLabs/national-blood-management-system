@@ -1,11 +1,13 @@
 package com.nbtsms.identity_service.service.impl;
 
+import com.nbtsms.identity_service.constant.KafkaTopics;
 import com.nbtsms.identity_service.dto.AssignRole;
 import com.nbtsms.identity_service.dto.CreateUserDTO;
 import com.nbtsms.identity_service.dto.UpdateUserDTO;
 import com.nbtsms.identity_service.dto.UserDTO;
 import com.nbtsms.identity_service.entity.User;
 import com.nbtsms.identity_service.enums.Role;
+import com.nbtsms.identity_service.event.StaffAssignedEvent;
 import com.nbtsms.identity_service.exception.BadRequestException;
 import com.nbtsms.identity_service.exception.ConflictException;
 import com.nbtsms.identity_service.exception.NotFoundException;
@@ -17,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,10 +31,12 @@ public class UserServiceImpl implements UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, KafkaTemplate<String, Object> kafkaTemplate) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
@@ -172,6 +177,28 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             logger.error("Error updating user with ID {}: {}", updateUserDTO.getId(), e.getMessage(), e);
             throw new BadRequestException(Map.of("detail", "An unexpected error occurred while updating the user."));
+        }
+    }
+
+    @Override
+    public void assignedStaffToMeeting(StaffAssignedEvent event) {
+        User user = userRepository.findById(event.getStaffId()).orElse(null);
+
+        if (user != null) {
+            kafkaTemplate.send(
+                    KafkaTopics.STAFF_MEETING_ASSIGNMENT,
+                    new StaffAssignedEvent(
+                            event.getStaffId(),
+                            user.getFirstName(),
+                            user.getMiddleName(),
+                            user.getLastName(),
+                            user.getPhoneNumber(),
+                            user.getEmail(),
+                            event.getMeetingId()
+                    )
+            );
+
+            userRepository.save(user);
         }
     }
 

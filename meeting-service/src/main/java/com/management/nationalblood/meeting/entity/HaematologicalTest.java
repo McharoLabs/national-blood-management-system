@@ -1,7 +1,6 @@
 package com.management.nationalblood.meeting.entity;
 
-import com.nbtsms.national_blood_management_system.questionnaire.enums.SerumProteinStatus;
-import com.nbtsms.national_blood_management_system.user.entity.User;
+import com.management.nationalblood.meeting.enums.SerumProteinStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,7 +38,5 @@ public class HaematologicalTest {
     @Enumerated(EnumType.STRING)
     private SerumProteinStatus serumProteinStatus;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    private User measuredBy;
+    private UUID measuredBy;
 }

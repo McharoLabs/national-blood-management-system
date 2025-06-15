@@ -1,7 +1,7 @@
 package com.management.nationalblood.meeting.entity;
 
-import com.nbtsms.national_blood_management_system.questionnaire.enums.FaintingLevel;
-import com.nbtsms.national_blood_management_system.questionnaire.enums.YesNo;
+import com.management.nationalblood.meeting.enums.FaintingLevel;
+import com.management.nationalblood.meeting.enums.YesNo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

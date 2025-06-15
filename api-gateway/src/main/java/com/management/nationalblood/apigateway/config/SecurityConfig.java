@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .pathMatchers(
                                 "/eureka/**",
                                 "/api/v1/identity/users/auth/**",
+                                "/api/v1/donors/appointments/create",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",

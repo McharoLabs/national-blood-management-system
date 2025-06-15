@@ -1,7 +1,6 @@
 package com.management.nationalblood.meeting.entity;
 
-import com.nbtsms.national_blood_management_system.questionnaire.enums.BloodProductType;
-import com.nbtsms.national_blood_management_system.user.entity.User;
+import com.management.nationalblood.meeting.enums.BloodProductType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -64,7 +63,5 @@ public class BloodCollectionData {
     @Enumerated(EnumType.STRING)
     private BloodProductType bloodProductType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    private User finalizedBy;
+    private UUID finalizedBy;
 }

@@ -20,6 +20,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("""
             SELECT DISTINCT u FROM User u
+            WHERE u.centerId = :centerId
+            """)
+    List<User> findCenterStaffByCenterId(@Param("centerId") UUID centerId);
+
+    @Query("""
+            SELECT DISTINCT u FROM User u
             WHERE
                 LOWER(CONCAT(u.firstName, ' ', COALESCE(u.middleName, ''), ' ', u.lastName))
                     LIKE LOWER(CONCAT('%', COALESCE(:name, ''), '%'))
