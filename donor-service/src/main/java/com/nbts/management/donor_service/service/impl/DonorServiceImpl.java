@@ -1,10 +1,13 @@
 package com.nbts.management.donor_service.service.impl;
 
+import com.nbts.management.donor_service.constants.App;
+import com.nbts.management.donor_service.constants.KafkaTopics;
 import com.nbts.management.donor_service.dto.CreateDonorDTO;
 import com.nbts.management.donor_service.dto.DonorResponseDTO;
 import com.nbts.management.donor_service.entity.Donor;
 import com.nbts.management.donor_service.enums.Gender;
 import com.nbts.management.donor_service.event.DonorAuthCreatedEvent;
+import com.nbts.management.donor_service.event.DonorNotificationEvent;
 import com.nbts.management.donor_service.exception.BadRequestException;
 import com.nbts.management.donor_service.exception.ConflictException;
 import com.nbts.management.donor_service.exception.NotFoundException;
@@ -15,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -24,9 +28,11 @@ import java.util.stream.Collectors;
 public class DonorServiceImpl implements DonorService {
     private static final Logger logger = LoggerFactory.getLogger(DonorServiceImpl.class);
     private final DonorRepository donorRepository;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public DonorServiceImpl(DonorRepository donorRepository) {
+    public DonorServiceImpl(DonorRepository donorRepository, KafkaTemplate<String, Object> kafkaTemplate) {
         this.donorRepository = donorRepository;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
@@ -52,6 +58,19 @@ public class DonorServiceImpl implements DonorService {
 
         try {
             Donor insertedData = donorRepository.save(donor);
+
+            kafkaTemplate.send(
+                    KafkaTopics.DONOR_NOTIFICATION,
+                    new DonorNotificationEvent(
+                            insertedData.getPhoneNumber(),
+                            String.format(
+                                    "Umefanikiwa kufungua akaunti Damu Salama, Username yako ni: %s Password ni: 12345. Tembelea %s kutazama taarifa zako",
+                                    insertedData.getPhoneNumber(),
+                                    App.DONOR_APP_URL
+                            ),
+                            App.DONOR_APP_URL
+                    )
+            );
 
             return insertedData.getId();
         } catch (RuntimeException e) {

@@ -60,7 +60,7 @@ public class DonorController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/{donorId}/donor")
+    @GetMapping("{donorId}/donor")
     public ResponseEntity<DonorServiceResponseDTO<DonorResponseDTO>> getDonorById(
             @PathVariable UUID donorId,
             HttpServletRequest request
@@ -74,7 +74,7 @@ public class DonorController {
     }
 
     @PreAuthorize("hasAuthority('ROLE_INTERNAL')")
-    @GetMapping("/{donorId}/exists")
+    @GetMapping("{donorId}/exists")
     public boolean checkDonorExists(@PathVariable UUID donorId) {
         return donorService.donorExists(donorId);
     }
