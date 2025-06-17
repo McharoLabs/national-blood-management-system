@@ -22,7 +22,9 @@ public class Questionnaire {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private UUID donor;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    private Donor donor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)

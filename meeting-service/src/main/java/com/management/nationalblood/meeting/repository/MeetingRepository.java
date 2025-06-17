@@ -1,6 +1,7 @@
 package com.management.nationalblood.meeting.repository;
 
 import com.management.nationalblood.meeting.entity.Meeting;
+import com.management.nationalblood.meeting.enums.FormProgress;
 import com.management.nationalblood.meeting.enums.MeetingStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,20 @@ import java.util.UUID;
 public interface MeetingRepository extends JpaRepository<Meeting, UUID> {
     Optional<Meeting> findByScheduledAtAndCenterIdAndLocation(
             LocalDateTime scheduledAt, UUID centerId, String location
+    );
+
+    @Query("""
+        SELECT DISTINCT m FROM Meeting m
+        JOIN m.questionnaires q
+        JOIN q.donor d
+        WHERE m.id = :meetingId
+          AND (:formProgressList IS NULL OR q.formProgress IN :formProgressList)
+          AND (COALESCE(:donorName, '') = '' OR LOWER(d.fullName) LIKE LOWER(CONCAT('%', :donorName, '%')))
+    """)
+    List<Meeting> findByMeetingIdAndOptionalDonorNameAndFormProgressIn(
+            @Param("meetingId") UUID meetingId,
+            @Param("donorName") String donorName,
+            @Param("formProgressList") List<FormProgress> formProgressList
     );
 
     @Query("""
