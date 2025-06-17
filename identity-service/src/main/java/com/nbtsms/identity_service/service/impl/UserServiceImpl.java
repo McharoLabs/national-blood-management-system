@@ -186,7 +186,7 @@ public class UserServiceImpl implements UserService {
 
         if (user != null) {
             kafkaTemplate.send(
-                    KafkaTopics.STAFF_MEETING_ASSIGNMENT,
+                    KafkaTopics.STAFF_MEETING_ASSIGNMENT_RES,
                     new StaffAssignedEvent(
                             event.getStaffId(),
                             user.getFirstName(),

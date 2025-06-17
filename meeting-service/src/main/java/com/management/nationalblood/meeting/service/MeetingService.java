@@ -20,6 +20,8 @@ public interface MeetingService {
     void removeStaffFromMeeting(UUID meetingId, MeetingStaffAssignmentDTO staffAssignmentDTO) throws NotFoundException, BadRequestException;
     void assignStaffToMeetingEvent(StaffAssignedEvent event);
 
+    void rescheduleMeeting(UUID meetingId, LocalDateTime newScheduledAt) throws NotFoundException, BadRequestException;
+    void updateMeetingStatus(UUID meetingId, MeetingStatus status) throws NotFoundException, BadRequestException;
 
     Page<MeetingDTO> getMeetingsByOrganizer(
             UUID organizerId,

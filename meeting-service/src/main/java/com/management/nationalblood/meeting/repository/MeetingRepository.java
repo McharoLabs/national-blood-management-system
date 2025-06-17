@@ -24,6 +24,15 @@ public interface MeetingRepository extends JpaRepository<Meeting, UUID> {
           AND (COALESCE(:status, m.status) = m.status)
           AND (LOWER(m.location) LIKE LOWER(CONCAT('%', COALESCE(:location, ''), '%')))
           AND (CAST(:scheduledAt AS date) IS NULL OR m.scheduledAt = :scheduledAt)
+        ORDER BY
+          CASE m.status
+            WHEN 'ONGOING' THEN 0
+            WHEN 'PLANNED' THEN 1
+            WHEN 'COMPLETED' THEN 2
+            WHEN 'CANCELLED' THEN 3
+            ELSE 4
+          END,
+          m.scheduledAt ASC
     """)
     Page<Meeting> findByOrganizerFiltered(
             @Param("organizerId") UUID organizerId,
@@ -33,6 +42,7 @@ public interface MeetingRepository extends JpaRepository<Meeting, UUID> {
             Pageable pageable
     );
 
+
     @Query("""
         SELECT m FROM Meeting m
         JOIN m.staffs s
@@ -40,6 +50,15 @@ public interface MeetingRepository extends JpaRepository<Meeting, UUID> {
           AND (COALESCE(:status, m.status) = m.status)
           AND (LOWER(m.location) LIKE LOWER(CONCAT('%', COALESCE(:location, ''), '%')))
           AND (CAST(:scheduledAt AS date) IS NULL OR m.scheduledAt = :scheduledAt)
+        ORDER BY
+          CASE m.status
+            WHEN 'ONGOING' THEN 0
+            WHEN 'PLANNED' THEN 1
+            WHEN 'COMPLETED' THEN 2
+            WHEN 'CANCELLED' THEN 3
+            ELSE 4
+          END,
+          m.scheduledAt ASC
     """)
     Page<Meeting> findByStaffFiltered(
             @Param("staffId") UUID staffId,
@@ -48,6 +67,7 @@ public interface MeetingRepository extends JpaRepository<Meeting, UUID> {
             @Param("scheduledAt") LocalDateTime scheduledAt,
             Pageable pageable
     );
+
 
     @Query("""
         SELECT DISTINCT m FROM Meeting m

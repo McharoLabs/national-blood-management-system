@@ -14,7 +14,7 @@ public class StaffAssignmentListener {
         this.meetingService = meetingService;
     }
 
-    @KafkaListener(topics = KafkaTopics.STAFF_MEETING_ASSIGNMENT)
+    @KafkaListener(topics = KafkaTopics.STAFF_MEETING_ASSIGNMENT_RES)
     public void handleCreateDonorAuth(StaffAssignedEvent event) {
         meetingService.assignStaffToMeetingEvent(event);
     }
