@@ -10,12 +10,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateDonorDTO {
+public class UpdateDonorDTO {
+    @NotNull(message = "Donor ID is mandatory")
+    private UUID id;
+
     @NotBlank(message = "Full name is required")
     private String fullName;
 
@@ -68,5 +72,4 @@ public class CreateDonorDTO {
 
     @NotBlank(message = "Occupation is required")
     private String occupation;
-
 }

@@ -17,6 +17,8 @@ public interface DonorRepository extends JpaRepository<Donor, UUID> {
 
     Optional<Donor> findByPhoneNumber(String phoneNumber);
 
+    Optional<Donor> findByDonorId(UUID donorId);
+
     @Query("""
         SELECT d FROM Donor d
         WHERE (:fullName IS NULL OR d.fullName LIKE %:fullName%)

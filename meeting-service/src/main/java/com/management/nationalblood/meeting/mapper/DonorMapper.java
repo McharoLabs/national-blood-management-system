@@ -19,6 +19,7 @@ public class DonorMapper {
         donor.setWard(dto.getWard());
         donor.setStreet(dto.getStreet());
         donor.setGender(dto.getGender());
+        donor.setDonorId(dto.getDonorId());
 
         return donor;
     }

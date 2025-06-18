@@ -18,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -31,9 +32,9 @@ public class AssessmentController {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
-    public ResponseEntity<MeetingResponseDTO<UUID>> initializeQuestionnaire(@RequestBody CreateAssessmentDTO dto, HttpServletRequest request) {
+    public ResponseEntity<MeetingResponseDTO<Map<String, Object>>> initializeQuestionnaire(@RequestBody CreateAssessmentDTO dto, HttpServletRequest request) {
         UUID id = assessmentService.initializeQuestionnaire(dto);
-        return new ResponseEntity<>(MeetingResponseDTO.ok(id, "Assessment initialized", request.getRequestURI()), HttpStatus.CREATED);
+        return new ResponseEntity<>(MeetingResponseDTO.ok(Map.of("assessmentId", id), "Assessment initialized", request.getRequestURI()), HttpStatus.CREATED);
     }
 
     @GetMapping("donor/{donorId}")

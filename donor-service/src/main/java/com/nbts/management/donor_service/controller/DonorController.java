@@ -3,6 +3,7 @@ package com.nbts.management.donor_service.controller;
 import com.nbts.management.donor_service.dto.CreateDonorDTO;
 import com.nbts.management.donor_service.dto.DonorResponseDTO;
 import com.nbts.management.donor_service.dto.DonorServiceResponseDTO;
+import com.nbts.management.donor_service.dto.UpdateDonorDTO;
 import com.nbts.management.donor_service.enums.Gender;
 import com.nbts.management.donor_service.exception.UnauthorizedAccessException;
 import com.nbts.management.donor_service.service.impl.DonorServiceImpl;
@@ -48,6 +49,21 @@ public class DonorController {
                 request.getRequestURI()
         );
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PutMapping
+    public ResponseEntity<DonorServiceResponseDTO<Map<String, Object>>> updateDonor(
+            @Valid @RequestBody UpdateDonorDTO updateDonorDTO,
+            HttpServletRequest request
+    ) {
+        donorService.updateDonor(updateDonorDTO);
+
+        DonorServiceResponseDTO<Map<String, Object>> response = DonorServiceResponseDTO.ok(
+                null,
+                "Donor updated successfully",
+                request.getRequestURI()
+        );
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

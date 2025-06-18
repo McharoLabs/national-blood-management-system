@@ -52,7 +52,7 @@ public class AssessmentServiceImpl implements AssessmentService {
             throw new BadRequestException(Map.of("detail", "Meeting to initialize the assessment must be ONGOING"));
         }
 
-        Donor donor = donorRepository.findById(questionnaireDTO.getDonorId())
+        Donor donor = donorRepository.findByDonorId(questionnaireDTO.getDonorId())
                 .orElse(null);
 
         if (donor == null) {

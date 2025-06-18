@@ -4,6 +4,7 @@ import com.nbts.management.donor_service.constants.App;
 import com.nbts.management.donor_service.constants.KafkaTopics;
 import com.nbts.management.donor_service.dto.CreateDonorDTO;
 import com.nbts.management.donor_service.dto.DonorResponseDTO;
+import com.nbts.management.donor_service.dto.UpdateDonorDTO;
 import com.nbts.management.donor_service.entity.Donor;
 import com.nbts.management.donor_service.enums.Gender;
 import com.nbts.management.donor_service.event.DonorAuthCreatedEvent;
@@ -78,6 +79,42 @@ public class DonorServiceImpl implements DonorService {
             throw e;
         }
     }
+
+    @Override
+    public void updateDonor(UpdateDonorDTO updateDonorDTO) throws NotFoundException, BadRequestException {
+        logger.info("Attempting to update donor with ID: {}", updateDonorDTO.getId());
+
+        Donor existingDonor = donorRepository.findById(updateDonorDTO.getId())
+                .orElseThrow(() -> {
+                    logger.warn("Donor with ID {} not found", updateDonorDTO.getId());
+                    return new NotFoundException(Map.of("detail", "Donor not found"));
+                });
+
+        Map<String, String> errors = new HashMap<>();
+
+        donorRepository.findByFullNameIgnoreCase(updateDonorDTO.getFullName()).ifPresent(donor -> {
+            if (!donor.getId().equals(existingDonor.getId())) {
+                errors.put("fullName", "Donor with this name already exists");
+            }
+        });
+
+        donorRepository.findByPhoneNumber(updateDonorDTO.getPhoneNumber()).ifPresent(donor -> {
+            if (!donor.getId().equals(existingDonor.getId())) {
+                errors.put("phoneNumber", "Donor with this phone number already exists");
+            }
+        });
+
+        if (!errors.isEmpty()) {
+            logger.warn("Validation errors while updating donor: {}", errors);
+            throw new BadRequestException(errors);
+        }
+
+        DonorMapper.updateEntity(existingDonor, updateDonorDTO);
+        donorRepository.save(existingDonor);
+
+        logger.info("Successfully updated donor with ID: {}", existingDonor.getId());
+    }
+
 
     @Override
     public Page<DonorResponseDTO> getAllDonors(Pageable pageable, String fullName, Gender gender) {

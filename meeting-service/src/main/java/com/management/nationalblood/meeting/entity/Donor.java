@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -24,6 +25,9 @@ public class Donor {
 
     @Column(nullable = false)
     private UUID donorId;
+
+    @OneToMany(mappedBy = "donor", cascade = CascadeType.ALL)
+    private List<Questionnaire> questionnaires;
 
     @Column(nullable = false, unique = true)
     private String fullName;
