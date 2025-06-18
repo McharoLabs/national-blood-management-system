@@ -138,7 +138,7 @@ public class DonorServiceImpl implements DonorService {
 
     @Override
     public void setDonorAuthSavedTrue(DonorAuthCreatedEvent authCreatedEvent) {
-        donorRepository.findByPhoneNumber(authCreatedEvent.getPhoneNumber())
+        donorRepository.findById(authCreatedEvent.getDonorId())
                 .ifPresent(donor -> {
                     donor.setAuthSaved(true);
                     donorRepository.save(donor);

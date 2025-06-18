@@ -91,6 +91,7 @@ public class AppointmentNotificationScheduler {
         allByAuthSavedFalse.forEach(donorResponseDTO -> kafkaTemplate.send(
                 KafkaTopics.SAVE_DONOR_AUTH,
                 new DonorAuthCreatedEvent(
+                        donorResponseDTO.getId(),
                         donorResponseDTO.getPhoneNumber(),
                         false
                 )
