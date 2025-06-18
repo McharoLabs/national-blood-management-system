@@ -16,22 +16,26 @@ public interface AssessmentService {
     UUID initializeQuestionnaire(CreateAssessmentDTO questionnaireDTO) throws BadRequestException, NotFoundException;
     AssessmentResponseDTO getQuestionnaire(UUID donorId) throws NotFoundException, BadRequestException;
 
-    Page<AssessmentResponseDTO> getQuestionnairesByCenterIds(List<UUID> centerIds, Pageable pageable,
-                                                        FormProgress formProgress, String donorName,
-                                                        LocalDateTime startDate, LocalDateTime endDate,
-                                                        LocalDateTime meetingStartDate, LocalDateTime meetingEndDate)
-            throws NotFoundException;
+    Page<AssessmentResponseDTO> getQuestionnairesByCenterIds(
+            List<UUID> centerIds, Pageable pageable,
+            FormProgress formProgress, String donorName,
+            LocalDateTime startDate, LocalDateTime endDate,
+            LocalDateTime meetingStartDate, LocalDateTime meetingEndDate
+    ) throws NotFoundException;
 
-    Page<AssessmentResponseDTO> getQuestionnairesByCenter(UUID centerId, Pageable pageable,
-                                                          FormProgress formProgress, String donorName,
-                                                          LocalDateTime startDate, LocalDateTime endDate,
-                                                          LocalDateTime meetingStartDate, LocalDateTime meetingEndDate)
-            throws NotFoundException;
+    Page<AssessmentResponseDTO> getQuestionnairesByCenter(
+            UUID centerId, Pageable pageable,
+            FormProgress formProgress, String donorName,
+            LocalDateTime startDate, LocalDateTime endDate,
+            LocalDateTime meetingStartDate, LocalDateTime meetingEndDate
+    ) throws NotFoundException;
 
-    Page<AssessmentResponseDTO> getQuestionnairesByMeeting(UUID meetingId, Pageable pageable,
-                                                           FormProgress formProgress, String donorName,
-                                                           LocalDateTime startDate, LocalDateTime endDate,
-                                                           LocalDateTime meetingStartDate, LocalDateTime meetingEndDate)
+    Page<AssessmentResponseDTO> getQuestionnairesByMeeting(
+            UUID meetingId, Pageable pageable,
+            FormProgress formProgress, String donorName,
+            LocalDateTime startDate, LocalDateTime endDate,
+            LocalDateTime meetingStartDate, LocalDateTime meetingEndDate
+    )
             throws NotFoundException, BadRequestException;
 
     AssessmentResponseDTO getDonorLastQuestionnaire(UUID donorId) throws NotFoundException, BadRequestException;
