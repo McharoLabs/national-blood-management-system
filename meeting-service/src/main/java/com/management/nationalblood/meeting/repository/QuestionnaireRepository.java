@@ -20,9 +20,7 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, UU
     Optional<Questionnaire> findFirstByDonorAndFormProgressNotOrderByFormStartedAtDesc(Donor donor, FormProgress formProgress);
     Optional<Questionnaire> findByDonor(Donor donor);
     Optional<Questionnaire> findFirstByDonorOrderByFormStartedAtDesc(Donor donor);
-    Optional<Questionnaire> findByMeeting(Meeting meeting);
     Optional<Questionnaire> findByIdAndFormProgress(UUID id, FormProgress formProgress);
-    Optional<Questionnaire> findByMeetingAndFormProgress(Meeting meeting, FormProgress formProgress);
 
     @Query("""
         SELECT q FROM Questionnaire q
@@ -65,10 +63,10 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, UU
         WHERE m.centerId IN :centerIds
           AND (:formProgress IS NULL OR q.formProgress = :formProgress)
           AND (COALESCE(:donorName, '') = '' OR LOWER(q.donor.fullName) LIKE LOWER(CONCAT('%', :donorName, '%')))
-          AND (:startDate IS NULL OR q.formStartedAt >= :startDate)
-          AND (:endDate IS NULL OR q.formStartedAt <= :endDate)
-          AND (:meetingStartDate IS NULL OR m.scheduledAt >= :meetingStartDate)
-          AND (:meetingEndDate IS NULL OR m.scheduledAt <= :meetingEndDate)
+          AND (q.formStartedAt >= COALESCE(:startDate, q.formStartedAt))
+          AND (q.formStartedAt <= COALESCE(:endDate, q.formStartedAt))
+          AND (m.scheduledAt >= COALESCE(:meetingStartDate, m.scheduledAt))
+          AND (m.scheduledAt <= COALESCE(:meetingEndDate, m.scheduledAt))
         ORDER BY q.formStartedAt DESC
     """)
     Page<Questionnaire> findAllByCenterIdsWithFilters(
@@ -88,10 +86,10 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, UU
         WHERE m.id = :meetingId
           AND (:formProgress IS NULL OR q.formProgress = :formProgress)
           AND (COALESCE(:donorName, '') = '' OR LOWER(q.donor.fullName) LIKE LOWER(CONCAT('%', :donorName, '%')))
-          AND (:startDate IS NULL OR q.formStartedAt >= :startDate)
-          AND (:endDate IS NULL OR q.formStartedAt <= :endDate)
-          AND (:meetingStartDate IS NULL OR m.scheduledAt >= :meetingStartDate)
-          AND (:meetingEndDate IS NULL OR m.scheduledAt <= :meetingEndDate)
+          AND (q.formStartedAt >= COALESCE(:startDate, q.formStartedAt))
+          AND (q.formStartedAt <= COALESCE(:endDate, q.formStartedAt))
+          AND (m.scheduledAt >= COALESCE(:meetingStartDate, m.scheduledAt))
+          AND (m.scheduledAt <= COALESCE(:meetingEndDate, m.scheduledAt))
         ORDER BY q.formStartedAt DESC
     """)
     Page<Questionnaire> findAllByMeetingIdWithFilters(
@@ -111,10 +109,10 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, UU
         WHERE m.centerId = :centerId
           AND (:formProgress IS NULL OR q.formProgress = :formProgress)
           AND (COALESCE(:donorName, '') = '' OR LOWER(q.donor.fullName) LIKE LOWER(CONCAT('%', :donorName, '%')))
-          AND (:startDate IS NULL OR q.formStartedAt >= :startDate)
-          AND (:endDate IS NULL OR q.formStartedAt <= :endDate)
-          AND (:meetingStartDate IS NULL OR m.scheduledAt >= :meetingStartDate)
-          AND (:meetingEndDate IS NULL OR m.scheduledAt <= :meetingEndDate)
+          AND (q.formStartedAt >= COALESCE(:startDate, q.formStartedAt))
+          AND (q.formStartedAt <= COALESCE(:endDate, q.formStartedAt))
+          AND (m.scheduledAt >= COALESCE(:meetingStartDate, m.scheduledAt))
+          AND (m.scheduledAt <= COALESCE(:meetingEndDate, m.scheduledAt))
         ORDER BY q.formStartedAt DESC
     """)
     Page<Questionnaire> findAllByCenterIdWithFilters(
@@ -126,18 +124,5 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, UU
             @Param("meetingStartDate") LocalDateTime meetingStartDate,
             @Param("meetingEndDate") LocalDateTime meetingEndDate,
             Pageable pageable
-    );
-
-    @Query("""
-        SELECT q FROM Questionnaire q
-        JOIN q.donor d
-        WHERE q.meeting.id = :meetingId
-          AND q.formProgress = :formProgress
-          AND (COALESCE(:donorName, '') = '' OR LOWER(d.fullName) LIKE LOWER(CONCAT('%', :donorName, '%')))
-    """)
-    List<Questionnaire> findByMeetingIdAndFormProgressAndOptionalDonorName(
-            @Param("meetingId") UUID meetingId,
-            @Param("formProgress") FormProgress formProgress,
-            @Param("donorName") String donorName
     );
 }
