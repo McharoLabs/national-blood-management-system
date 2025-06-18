@@ -25,6 +25,9 @@ public class DonorAuth implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(nullable = false)
+    private UUID donorId;
+
     @Column(nullable = false, unique = true)
     private String phoneNumber;
 

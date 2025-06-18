@@ -1,11 +1,14 @@
 package com.nbtsms.identity_service.service.impl;
 
+import com.nbtsms.identity_service.dto.DonorSignInRequestDTO;
 import com.nbtsms.identity_service.dto.JwtAuthenticationResponseDTO;
 import com.nbtsms.identity_service.dto.RefreshTokenRequest;
 import com.nbtsms.identity_service.dto.SignInRequestDTO;
+import com.nbtsms.identity_service.entity.DonorAuth;
 import com.nbtsms.identity_service.entity.User;
 import com.nbtsms.identity_service.exception.BadRequestException;
 import com.nbtsms.identity_service.exception.NotFoundException;
+import com.nbtsms.identity_service.repository.DonorAuthRepository;
 import com.nbtsms.identity_service.repository.UserRepository;
 import com.nbtsms.identity_service.service.AuthenticationService;
 import org.slf4j.Logger;
@@ -23,11 +26,13 @@ import java.util.Optional;
 public class AuthenticationServiceImpl implements AuthenticationService {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
     private final UserRepository userRepository;
+    private final DonorAuthRepository donorAuthRepository;
     private final JwtServiceImpl jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthenticationServiceImpl(UserRepository userRepository, JwtServiceImpl jwtService, AuthenticationManager authenticationManager) {
+    public AuthenticationServiceImpl(UserRepository userRepository, DonorAuthRepository donorAuthRepository, JwtServiceImpl jwtService, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
+        this.donorAuthRepository = donorAuthRepository;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
     }
@@ -77,5 +82,33 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         return null;
+    }
+
+    @Override
+    public JwtAuthenticationResponseDTO donorSignIn(DonorSignInRequestDTO signInRequestDTO) throws NotFoundException, BadRequestException {
+        Map<String, String> errors = new HashMap<>();
+
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                signInRequestDTO.getPhoneNumber(),
+                signInRequestDTO.getPassword()
+        ));
+
+        Optional<DonorAuth> user = donorAuthRepository.findByPhoneNumber(signInRequestDTO.getPhoneNumber());
+
+        if (user.isPresent()) {
+            UserDetails userDetails = user.get();
+            String access = jwtService.generateDonorToken(userDetails);
+            String refresh = jwtService.generateDonorRefresh(new HashMap<>(), userDetails);
+
+            JwtAuthenticationResponseDTO responseDTO = new JwtAuthenticationResponseDTO();
+            responseDTO.setAccess(access);
+            responseDTO.setRefresh(refresh);
+
+            return responseDTO;
+        }
+
+        errors.put("phoneNumber", "Invalid credentials");
+        errors.put("password", "Invalid credentials");
+        throw new NotFoundException(errors);
     }
 }

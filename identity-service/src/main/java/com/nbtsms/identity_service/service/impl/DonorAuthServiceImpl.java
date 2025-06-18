@@ -34,32 +34,38 @@ public class DonorAuthServiceImpl implements DonorAuthService {
                 .orElse(null);
 
         if (existingDonorAuth == null) {
-            DonorAuth donorAuth = new DonorAuth();
-            donorAuth.setPhoneNumber(donorAuthCreatedEvent.getPhoneNumber());
-            donorAuth.setPassword(passwordEncoder.encode("12345"));
+            try {
+                DonorAuth donorAuth = new DonorAuth();
+                donorAuth.setDonorId(donorAuthCreatedEvent.getDonorId());
+                donorAuth.setPhoneNumber(donorAuthCreatedEvent.getPhoneNumber());
+                donorAuth.setPassword(passwordEncoder.encode("12345"));
 
-            donorAuthRepository.save(donorAuth);
-            logger.info("Donor with phone number {} saved successfully", donorAuthCreatedEvent.getPhoneNumber());
+                DonorAuth savedDonor = donorAuthRepository.save(donorAuth);
 
-            kafkaTemplate.send(KafkaTopics.SAVE_DONOR_AUTH, new DonorAuthCreatedEvent(
-                    donorAuth.getPhoneNumber(),
-                    true
-            ));
+                logger.info("Donor with phone number {} saved successfully", donorAuthCreatedEvent.getPhoneNumber());
 
-            kafkaTemplate.send(
-                    KafkaTopics.DONOR_NOTIFICATION,
-                    new DonorNotificationEvent(
-                            donorAuthCreatedEvent.getPhoneNumber(),
-                            String.format(
-                                    "Umefanikiwa kufungua akaunti Damu Salama. Username yako ni: %s, password yako ni: 12345. Tembelea: %s kutazama taarifa zako.",
-                                    donorAuthCreatedEvent.getPhoneNumber(),
-                                    "https://nbts.go.tz/profile"
-                            ),
-                            ""
-                    )
-            );
+                kafkaTemplate.send(KafkaTopics.SAVE_DONOR_AUTH, new DonorAuthCreatedEvent(
+                        savedDonor.getId(),
+                        savedDonor.getPhoneNumber(),
+                        true
+                ));
 
+                kafkaTemplate.send(
+                        KafkaTopics.DONOR_NOTIFICATION,
+                        new DonorNotificationEvent(
+                                donorAuthCreatedEvent.getPhoneNumber(),
+                                String.format(
+                                        "Umefanikiwa kufungua akaunti Damu Salama. Username yako ni: %s, password yako ni: 12345. Tembelea: %s kutazama taarifa zako.",
+                                        donorAuthCreatedEvent.getPhoneNumber(),
+                                        "https://nbts.go.tz/profile"
+                                ),
+                                ""
+                        )
+                );
+            } catch (Exception e) {
+                logger.error("Failed to save DonorAuth for phone number {}: {}", donorAuthCreatedEvent.getPhoneNumber(), e.getMessage());
+            }
         }
-
     }
+
 }

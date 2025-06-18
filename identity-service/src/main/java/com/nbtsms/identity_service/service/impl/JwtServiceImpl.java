@@ -1,5 +1,6 @@
 package com.nbtsms.identity_service.service.impl;
 
+import com.nbtsms.identity_service.entity.DonorAuth;
 import com.nbtsms.identity_service.entity.User;
 import com.nbtsms.identity_service.exception.InvalidTokenException;
 import com.nbtsms.identity_service.service.JwtService;
@@ -80,6 +81,37 @@ public class JwtServiceImpl implements JwtService {
         return null;
     }
 
+    @Override
+    public String generateDonorToken(UserDetails userDetails) {
+        if (userDetails instanceof DonorAuth user) {
+            HashMap<String, Object> claims = getStringDonorObjectHashMap(user);
+
+            return Jwts
+                    .builder()
+                    .claims(claims)
+                    .subject(userDetails.getUsername())
+                    .issuedAt(new Date(System.currentTimeMillis()))
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 20))
+                    .signWith(getPrivateKey(), Jwts.SIG.RS512)
+                    .compact();
+        }
+        return null;
+    }
+
+    private HashMap<String, Object> getStringDonorObjectHashMap(DonorAuth user) {
+        List<String> roleNames = List.of("DONOR");
+
+        HashMap<String, Object> claims = new HashMap<>();
+
+        HashMap<String, Object> userClaims = new HashMap<>();
+        userClaims.put("id", user.getDonorId());
+        userClaims.put("phoneNumber", user.getPhoneNumber());
+
+        claims.put("roles", roleNames);
+        claims.put("user", userClaims);
+        return claims;
+    }
+
     private static HashMap<String, Object> getStringObjectHashMap(User user) {
         List<String> roleNames = user.getRoles()
                 .stream()
@@ -122,6 +154,23 @@ public class JwtServiceImpl implements JwtService {
     public String generateRefresh(HashMap<Object, Object> extraClaims, UserDetails userDetails) {
         if (userDetails instanceof User user) {
             HashMap<String, Object> claims = getStringObjectHashMap(user);
+
+            return Jwts
+                    .builder()
+                    .claims(claims)
+                    .subject(userDetails.getUsername())
+                    .issuedAt(new Date(System.currentTimeMillis()))
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 2))
+                    .signWith(getPrivateKey(), Jwts.SIG.RS512)
+                    .compact();
+        }
+        return null;
+    }
+
+    @Override
+    public String generateDonorRefresh(HashMap<Object, Object> extraClaims, UserDetails userDetails) {
+        if (userDetails instanceof DonorAuth user) {
+            HashMap<String, Object> claims = getStringDonorObjectHashMap(user);
 
             return Jwts
                     .builder()

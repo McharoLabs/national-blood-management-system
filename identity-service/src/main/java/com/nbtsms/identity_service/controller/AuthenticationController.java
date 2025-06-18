@@ -1,10 +1,8 @@
 package com.nbtsms.identity_service.controller;
 
-import com.nbtsms.identity_service.dto.ErrorResponseDTO;
-import com.nbtsms.identity_service.dto.IdentityResponseDTO;
-import com.nbtsms.identity_service.dto.JwtAuthenticationResponseDTO;
-import com.nbtsms.identity_service.dto.RefreshTokenRequest;
-import com.nbtsms.identity_service.dto.SignInRequestDTO;
+import com.nbtsms.identity_service.dto.*;
+import com.nbtsms.identity_service.exception.BadRequestException;
+import com.nbtsms.identity_service.exception.NotFoundException;
 import com.nbtsms.identity_service.service.impl.AuthenticationServiceImpl;
 import com.nbtsms.identity_service.swagger.IdentityAuthResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,6 +69,55 @@ public class AuthenticationController {
         JwtAuthenticationResponseDTO tokens = authenticationService.signIn(signInRequestDTO);
         IdentityResponseDTO<JwtAuthenticationResponseDTO> response =
                 IdentityResponseDTO.ok(tokens, "User authenticated successfully", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("donor/sign-in")
+    @Operation(
+            summary = "Authenticate donor and return JWT token",
+            description = "Validates donor credentials and returns a JWT token if authentication is successful."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully authenticated donor",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = JwtAuthenticationResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Donor not found or invalid credentials",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request due to invalid input or unverified donor",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponseDTO.class)
+                    )
+            )
+    })
+    public ResponseEntity<IdentityResponseDTO<JwtAuthenticationResponseDTO>> donorSignIn(
+            @Valid @RequestBody DonorSignInRequestDTO donorSignInRequestDTO,
+            HttpServletRequest request
+    ) throws NotFoundException, BadRequestException {
+        JwtAuthenticationResponseDTO tokens = authenticationService.donorSignIn(donorSignInRequestDTO);
+        IdentityResponseDTO<JwtAuthenticationResponseDTO> response =
+                IdentityResponseDTO.ok(tokens, "Donor authenticated successfully", request.getRequestURI());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

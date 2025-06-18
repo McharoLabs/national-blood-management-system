@@ -17,7 +17,6 @@ public class DonorAuthCreateListener {
         this.donorService = donorService;
     }
 
-
     @KafkaListener(topics = KafkaTopics.SAVE_DONOR_AUTH)
     public void handleCreateDonorAuth(DonorAuthCreatedEvent event) {
         logger.info("Received donor event: {}", event);
