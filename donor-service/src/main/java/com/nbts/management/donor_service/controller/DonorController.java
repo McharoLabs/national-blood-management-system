@@ -4,6 +4,7 @@ import com.nbts.management.donor_service.dto.CreateDonorDTO;
 import com.nbts.management.donor_service.dto.DonorResponseDTO;
 import com.nbts.management.donor_service.dto.DonorServiceResponseDTO;
 import com.nbts.management.donor_service.enums.Gender;
+import com.nbts.management.donor_service.exception.UnauthorizedAccessException;
 import com.nbts.management.donor_service.service.impl.DonorServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -28,7 +29,15 @@ public class DonorController {
         this.donorService = donorService;
     }
 
-    @PostMapping()
+    private UUID getDonorIdFromRequest(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("userId");
+        if (userId == null) {
+            throw new UnauthorizedAccessException("User ID not found in request attributes");
+        }
+        return UUID.fromString(userId);
+    }
+
+    @PostMapping
     public ResponseEntity<DonorServiceResponseDTO<Map<String, Object>>> create(
             @Valid @RequestBody CreateDonorDTO createDonorDTO,
             HttpServletRequest request
@@ -68,6 +77,19 @@ public class DonorController {
         DonorServiceResponseDTO<DonorResponseDTO> response = DonorServiceResponseDTO.ok(
                 donorService.getDonor(donorId),
                 "Donor retrieved successfully",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("donor")
+    public ResponseEntity<DonorServiceResponseDTO<DonorResponseDTO>> getLoggedInDonorInfo(
+            HttpServletRequest request
+    ) {
+        UUID donorId = getDonorIdFromRequest(request);
+        DonorServiceResponseDTO<DonorResponseDTO> response = DonorServiceResponseDTO.ok(
+                donorService.getDonor(donorId),
+                "Donor information retrieved successfully",
                 request.getRequestURI()
         );
         return new ResponseEntity<>(response, HttpStatus.OK);
