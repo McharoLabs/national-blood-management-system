@@ -32,7 +32,7 @@ public class AssessmentStatusUpdateServiceImpl implements AssessmentStatusUpdate
     public AssessmentResponseDTO completePreliminary(PreliminaryAssessmentDTO preliminaryQuestionnaireDTO, UUID meetingId, UUID staffId) throws NotFoundException, BadRequestException {
         logger.info("Starting preliminary assessment completion for meetingId={}, staffId={}", meetingId, staffId);
 
-        Questionnaire questionnaire = getQuestionnaire(meetingId, FormProgress.NOT_STARTED);
+        Questionnaire questionnaire = getQuestionnaire(preliminaryQuestionnaireDTO.getQuestionnaireId(), FormProgress.PHYSICAL_EXAM_COMPLETED);
 
         PreliminaryQuestionnaire preliminaryQuestionnaire = PreliminaryAssessmentMapper.toEntity(preliminaryQuestionnaireDTO);
         preliminaryQuestionnaire.setAssessedBy(staffId);
@@ -46,11 +46,11 @@ public class AssessmentStatusUpdateServiceImpl implements AssessmentStatusUpdate
         return AssessmentMapper.toResponse(questionnaire);
     }
 
-    private Questionnaire getQuestionnaire(UUID meetingId, FormProgress expectedCurrent) throws NotFoundException {
-        logger.debug("Fetching questionnaire for meetingId={} with expected form progress {}", meetingId, expectedCurrent);
-        return questionnaireRepository.findByIdAndFormProgress(meetingId, expectedCurrent)
+    private Questionnaire getQuestionnaire(UUID id, FormProgress expectedCurrent) throws NotFoundException {
+        logger.debug("Fetching questionnaire for meetingId={} with expected form progress {}", id, expectedCurrent);
+        return questionnaireRepository.findByIdAndFormProgress(id, expectedCurrent)
                 .orElseThrow(() -> {
-                    logger.error("No questionnaire found for meetingId={} with form progress {}", meetingId, expectedCurrent);
+                    logger.error("No questionnaire found for meetingId={} with form progress {}", id, expectedCurrent);
                     return new NotFoundException(Map.of("detail", "No assessment found"));
                 });
     }
@@ -59,7 +59,7 @@ public class AssessmentStatusUpdateServiceImpl implements AssessmentStatusUpdate
     public AssessmentResponseDTO completePhysicalExam(PhysicalExaminationDTO physicalExaminationDTO, UUID meetingId, UUID staffId) throws NotFoundException, BadRequestException {
         logger.info("Completing physical exam for meetingId={}, staffId={}", meetingId, staffId);
 
-        Questionnaire questionnaire = getQuestionnaire(meetingId, FormProgress.PRELIMINARY_COMPLETED);
+        Questionnaire questionnaire = getQuestionnaire(physicalExaminationDTO.getQuestionnaireId(), FormProgress.NOT_STARTED);
 
         PhysicalExamination physicalExamination = PhysicalExaminationMapper.toEntity(physicalExaminationDTO);
         physicalExamination.setMeasuredBy(staffId);
@@ -76,7 +76,7 @@ public class AssessmentStatusUpdateServiceImpl implements AssessmentStatusUpdate
     public AssessmentResponseDTO completeHaematologicalTests(HaematologicalTestDTO haematologicalTestDTO, UUID meetingId, UUID staffId) throws NotFoundException, BadRequestException {
         logger.info("Completing haematological tests for meetingId={}, staffId={}", meetingId, staffId);
 
-        Questionnaire questionnaire = getQuestionnaire(meetingId, FormProgress.PHYSICAL_EXAM_COMPLETED);
+        Questionnaire questionnaire = getQuestionnaire(haematologicalTestDTO.getQuestionnaireId(), FormProgress.PRELIMINARY_COMPLETED);
 
         HaematologicalTest haematologicalTest = HaematologicalTestMapper.toEntity(haematologicalTestDTO);
         haematologicalTest.setMeasuredBy(staffId);
@@ -93,7 +93,7 @@ public class AssessmentStatusUpdateServiceImpl implements AssessmentStatusUpdate
     public AssessmentResponseDTO completeBloodPressurePulse(BloodPressureAndPulseDTO bloodPressureAndPulseDTO, UUID meetingId, UUID staffId) throws NotFoundException, BadRequestException {
         logger.info("Completing blood pressure and pulse for meetingId={}, staffId={}", meetingId, staffId);
 
-        Questionnaire questionnaire = getQuestionnaire(meetingId, FormProgress.HAEMATOLOGICAL_TESTS_COMPLETED);
+        Questionnaire questionnaire = getQuestionnaire(bloodPressureAndPulseDTO.getQuestionnaireId(), FormProgress.HAEMATOLOGICAL_TESTS_COMPLETED);
 
         BloodPressureAndPulse bloodPressureAndPulse = BloodPressureAndPulseMapper.toEntity(bloodPressureAndPulseDTO);
         bloodPressureAndPulse.setMeasuredBy(staffId);
@@ -110,7 +110,7 @@ public class AssessmentStatusUpdateServiceImpl implements AssessmentStatusUpdate
     public AssessmentResponseDTO completeFinalEvaluation(FinalDonorEvaluationDTO evaluationDTO, UUID meetingId, UUID staffId) throws NotFoundException, BadRequestException {
         logger.info("Completing final evaluation for meetingId={}, staffId={}", meetingId, staffId);
 
-        Questionnaire questionnaire = getQuestionnaire(meetingId, FormProgress.BLOOD_PRESSURE_PULSE_COMPLETED);
+        Questionnaire questionnaire = getQuestionnaire(evaluationDTO.getQuestionnaireId(), FormProgress.BLOOD_PRESSURE_PULSE_COMPLETED);
 
         FinalDonorEvaluation evaluation = FinalDonorEvaluationMapper.toEntity(evaluationDTO);
         evaluation.setCounselor(staffId);
@@ -128,7 +128,7 @@ public class AssessmentStatusUpdateServiceImpl implements AssessmentStatusUpdate
         logger.info("Marking blood collected for meetingId={}, staffId={}", meetingId, staffId);
 
         // Fixed: Should use meetingId here, not staffId
-        Questionnaire questionnaire = getQuestionnaire(meetingId, FormProgress.FINAL_EVALUATION_COMPLETED);
+        Questionnaire questionnaire = getQuestionnaire(bloodCollectionDataDTO.getQuestionnaireId(), FormProgress.FINAL_EVALUATION_COMPLETED);
 
         BloodCollectionData collectionData = BloodCollectionDataMapper.toEntity(bloodCollectionDataDTO);
         collectionData.setFinalizedBy(staffId);
@@ -145,7 +145,7 @@ public class AssessmentStatusUpdateServiceImpl implements AssessmentStatusUpdate
     public AssessmentResponseDTO adverseEvent(AdverseEventDTO adverseEventDTO, UUID meetingId, UUID staffId) throws NotFoundException, BadRequestException {
         logger.info("Recording adverse event for meetingId={}, staffId={}", meetingId, staffId);
 
-        Questionnaire questionnaire = getQuestionnaire(meetingId, FormProgress.BLOOD_COLLECTED);
+        Questionnaire questionnaire = getQuestionnaire(adverseEventDTO.getQuestionnaireId(), FormProgress.BLOOD_COLLECTED);
 
         AdverseEvent event = AdverseEventMapper.toEntity(adverseEventDTO);
         questionnaire.setAdverseEvent(event);

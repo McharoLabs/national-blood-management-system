@@ -22,6 +22,8 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, UU
     Optional<Questionnaire> findFirstByDonorOrderByFormStartedAtDesc(Donor donor);
     Optional<Questionnaire> findByIdAndFormProgress(UUID id, FormProgress formProgress);
 
+    //Optional<Questionnaire> findByIdAndFormProgressAndMeeting_Id(UUID id, FormProgress formProgress, UUID meetingId);
+
     @Query("""
         SELECT q FROM Questionnaire q
         JOIN q.donor d

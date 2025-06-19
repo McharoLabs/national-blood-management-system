@@ -6,6 +6,7 @@ import com.management.nationalblood.meeting.exception.NotFoundException;
 import com.management.nationalblood.meeting.exception.UnauthorizedAccessException;
 import com.management.nationalblood.meeting.service.AssessmentStatusUpdateService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,21 +33,24 @@ public class AssessmentStatusUpdateController {
 
     @PostMapping("preliminary/{meetingId}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
-    public ResponseEntity<MeetingResponseDTO<List<AssessmentResponseDTO>>> completePreliminary(
+    public ResponseEntity<MeetingResponseDTO<AssessmentResponseDTO>> completePreliminary(
             @RequestBody PreliminaryAssessmentDTO dto,
             @PathVariable UUID meetingId,
             HttpServletRequest request) throws NotFoundException, BadRequestException {
 
         UUID staffId = getStaffIdFromRequest(request);
-        AssessmentResponseDTO response = assessmentStatusUpdateService.completePreliminary(dto, meetingId, staffId);
-        return ResponseEntity.ok(
-                MeetingResponseDTO.ok(List.of(response), "Preliminary assessment completed", request.getRequestURI())
+
+        MeetingResponseDTO<AssessmentResponseDTO> response = MeetingResponseDTO.ok(
+                assessmentStatusUpdateService.completePreliminary(dto, meetingId, staffId),
+                "Preliminary assessment completed",
+                request.getRequestURI()
         );
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("physical-exam/{meetingId}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
-    public ResponseEntity<MeetingResponseDTO<List<AssessmentResponseDTO>>> completePhysicalExam(
+    public ResponseEntity<MeetingResponseDTO<AssessmentResponseDTO>> completePhysicalExam(
             @RequestBody PhysicalExaminationDTO dto,
             @PathVariable UUID meetingId,
             HttpServletRequest request) throws NotFoundException, BadRequestException {
@@ -54,13 +58,13 @@ public class AssessmentStatusUpdateController {
         UUID staffId = getStaffIdFromRequest(request);
         AssessmentResponseDTO response = assessmentStatusUpdateService.completePhysicalExam(dto, meetingId, staffId);
         return ResponseEntity.ok(
-                MeetingResponseDTO.ok(List.of(response), "Physical exam completed", request.getRequestURI())
+                MeetingResponseDTO.ok(response, "Physical exam completed", request.getRequestURI())
         );
     }
 
     @PostMapping("haematological-tests/{meetingId}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
-    public ResponseEntity<MeetingResponseDTO<List<AssessmentResponseDTO>>> completeHaematologicalTests(
+    public ResponseEntity<MeetingResponseDTO<AssessmentResponseDTO>> completeHaematologicalTests(
             @RequestBody HaematologicalTestDTO dto,
             @PathVariable UUID meetingId,
             HttpServletRequest request) throws NotFoundException, BadRequestException {
@@ -68,13 +72,13 @@ public class AssessmentStatusUpdateController {
         UUID staffId = getStaffIdFromRequest(request);
         AssessmentResponseDTO response = assessmentStatusUpdateService.completeHaematologicalTests(dto, meetingId, staffId);
         return ResponseEntity.ok(
-                MeetingResponseDTO.ok(List.of(response), "Haematological tests completed", request.getRequestURI())
+                MeetingResponseDTO.ok(response, "Haematological tests completed", request.getRequestURI())
         );
     }
 
     @PostMapping("blood-pressure-pulse/{meetingId}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
-    public ResponseEntity<MeetingResponseDTO<List<AssessmentResponseDTO>>> completeBloodPressurePulse(
+    public ResponseEntity<MeetingResponseDTO<AssessmentResponseDTO>> completeBloodPressurePulse(
             @RequestBody BloodPressureAndPulseDTO dto,
             @PathVariable UUID meetingId,
             HttpServletRequest request) throws NotFoundException, BadRequestException {
@@ -82,13 +86,13 @@ public class AssessmentStatusUpdateController {
         UUID staffId = getStaffIdFromRequest(request);
         AssessmentResponseDTO response = assessmentStatusUpdateService.completeBloodPressurePulse(dto, meetingId, staffId);
         return ResponseEntity.ok(
-                MeetingResponseDTO.ok(List.of(response), "Blood pressure and pulse completed", request.getRequestURI())
+                MeetingResponseDTO.ok(response, "Blood pressure and pulse completed", request.getRequestURI())
         );
     }
 
     @PostMapping("final-evaluation/{meetingId}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
-    public ResponseEntity<MeetingResponseDTO<List<AssessmentResponseDTO>>> completeFinalEvaluation(
+    public ResponseEntity<MeetingResponseDTO<AssessmentResponseDTO>> completeFinalEvaluation(
             @RequestBody FinalDonorEvaluationDTO dto,
             @PathVariable UUID meetingId,
             HttpServletRequest request) throws NotFoundException, BadRequestException {
@@ -96,13 +100,13 @@ public class AssessmentStatusUpdateController {
         UUID staffId = getStaffIdFromRequest(request);
         AssessmentResponseDTO response = assessmentStatusUpdateService.completeFinalEvaluation(dto, meetingId, staffId);
         return ResponseEntity.ok(
-                MeetingResponseDTO.ok(List.of(response), "Final evaluation completed", request.getRequestURI())
+                MeetingResponseDTO.ok(response, "Final evaluation completed", request.getRequestURI())
         );
     }
 
     @PostMapping("blood-collected/{meetingId}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
-    public ResponseEntity<MeetingResponseDTO<List<AssessmentResponseDTO>>> bloodCollected(
+    public ResponseEntity<MeetingResponseDTO<AssessmentResponseDTO>> bloodCollected(
             @RequestBody BloodCollectionDataDTO dto,
             @PathVariable UUID meetingId,
             HttpServletRequest request) throws NotFoundException, BadRequestException {
@@ -110,13 +114,13 @@ public class AssessmentStatusUpdateController {
         UUID staffId = getStaffIdFromRequest(request);
         AssessmentResponseDTO response = assessmentStatusUpdateService.bloodCollected(dto, meetingId, staffId);
         return ResponseEntity.ok(
-                MeetingResponseDTO.ok(List.of(response), "Blood collection completed", request.getRequestURI())
+                MeetingResponseDTO.ok(response, "Blood collection completed", request.getRequestURI())
         );
     }
 
     @PostMapping("adverse-event/{meetingId}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
-    public ResponseEntity<MeetingResponseDTO<List<AssessmentResponseDTO>>> adverseEvent(
+    public ResponseEntity<MeetingResponseDTO<AssessmentResponseDTO>> adverseEvent(
             @RequestBody AdverseEventDTO dto,
             @PathVariable UUID meetingId,
             HttpServletRequest request) throws NotFoundException, BadRequestException {
@@ -124,7 +128,7 @@ public class AssessmentStatusUpdateController {
         UUID staffId = getStaffIdFromRequest(request);
         AssessmentResponseDTO response = assessmentStatusUpdateService.adverseEvent(dto, meetingId, staffId);
         return ResponseEntity.ok(
-                MeetingResponseDTO.ok(List.of(response), "Adverse event recorded", request.getRequestURI())
+                MeetingResponseDTO.ok(response, "Adverse event recorded", request.getRequestURI())
         );
     }
 }
