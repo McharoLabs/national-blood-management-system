@@ -1,24 +1,119 @@
 version: '3.8'
 
 services:
+  postgres-donor-service:
+    container_name: postgres-donor-service
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DONOR_DB}
+      POSTGRES_USER: ${POSTGRES_DONOR_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_DONOR_PASS}
+    volumes:
+      - ./volumes/postgres-donor-service:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_DONOR_PORT}:5432"
+    networks:
+      - nbtsms
+    restart: always
+
+  postgres-identity-service:
+    container_name: postgres-identity-service
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_IDENTITY_DB}
+      POSTGRES_USER: ${POSTGRES_IDENTITY_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_IDENTITY_PASS}
+    volumes:
+      - ./volumes/postgres-identity-service:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_IDENTITY_PORT}:5432"
+    networks:
+      - nbtsms
+    restart: always
+
+  postgres-zone-service:
+    container_name: postgres-zone-service
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_ZONE_DB}
+      POSTGRES_USER: ${POSTGRES_ZONE_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_ZONE_PASS}
+    volumes:
+      - ./volumes/postgres-zone-service:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_ZONE_PORT}:5432"
+    networks:
+      - nbtsms
+    restart: always
+
+  postgres-meeting-service:
+    container_name: postgres-meeting-service
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_MEETING_DB}
+      POSTGRES_USER: ${POSTGRES_MEETING_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_MEETING_PASS}
+    volumes:
+      - ./volumes/postgres-meeting-service:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_MEETING_PORT}:5432"
+    networks:
+      - nbtsms
+    restart: always
+
+  postgres-notification-service:
+    container_name: postgres-notification-service
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_NOTIFICATION_DB}
+      POSTGRES_USER: ${POSTGRES_NOTIFICATION_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_NOTIFICATION_PASS}
+    volumes:
+      - ./volumes/postgres-notification-service:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_NOTIFICATION_PORT}:5432"
+    networks:
+      - nbtsms
+    restart: always
+
+  postgres-laboratory-service:
+    container_name: postgres-laboratory-service
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_LABORATORY_DB}
+      POSTGRES_USER: ${POSTGRES_LABORATORY_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_LABORATORY_PASS}
+    volumes:
+      - ./volumes/postgres-laboratory-service:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_LABORATORY_PORT}:5432"
+    networks:
+      - nbtsms
+    restart: always
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.0.1
     container_name: zookeeper
+    networks:
+      - nbtsms
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      test: [ "CMD-SHELL", "echo ruok | nc 127.0.0.1 2181 | grep imok" ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+
 
   kafka-broker-1:
     image: confluentinc/cp-kafka:7.0.1
     hostname: kafka-broker-1
     container_name: kafka-broker-1
+    networks:
+      - nbtsms
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -34,3 +129,227 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    networks:
+      - nbtsms
+    ports:
+      - "9411:9411"
+
+  discovery-server:
+    image: seranise/discovery-server:latest
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
+      - EUREKA_PORT=${EUREKA_PORT}
+    depends_on:
+      - zipkin
+      - kafka-broker-1
+    networks:
+      - nbtsms
+
+  donor-service:
+    image: seranise/donor-service:latest
+    container_name: donor-service
+    volumes:
+      - /home/mcharo/projects/certs:/certs:ro
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - POSTGRES_DONOR_DB=${POSTGRES_DONOR_DB}
+      - POSTGRES_DONOR_USER=${POSTGRES_DONOR_USER}
+      - POSTGRES_DONOR_PASS=${POSTGRES_DONOR_PASS}
+      - POSTGRES_DONOR_PORT=${POSTGRES_DONOR_PORT}
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
+      - EUREKA_PORT=${EUREKA_PORT}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+    depends_on:
+      - postgres-donor-service
+      - discovery-server
+      - kafka-broker-1
+      - zipkin
+    ports:
+      - "8083:8083"
+    networks:
+      - nbtsms
+
+  identity-service:
+    image: seranise/identity-service:latest
+    container_name: identity-service
+    volumes:
+      - /home/mcharo/projects/certs:/certs:ro
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - POSTGRES_IDENTITY_DB=${POSTGRES_IDENTITY_DB}
+      - POSTGRES_IDENTITY_USER=${POSTGRES_IDENTITY_USER}
+      - POSTGRES_IDENTITY_PASS=${POSTGRES_IDENTITY_PASS}
+      - POSTGRES_IDENTITY_PORT=${POSTGRES_IDENTITY_PORT}
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
+      - EUREKA_PORT=${EUREKA_PORT}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+    depends_on:
+      - postgres-identity-service
+      - discovery-server
+      - kafka-broker-1
+      - zipkin
+    ports:
+      - "8081:8081"
+    networks:
+      - nbtsms
+
+  zone-service:
+    image: seranise/zone-service:latest
+    container_name: zone-service
+    volumes:
+      - /home/mcharo/projects/certs:/certs:ro
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - POSTGRES_ZONE_DB=${POSTGRES_ZONE_DB}
+      - POSTGRES_ZONE_USER=${POSTGRES_ZONE_USER}
+      - POSTGRES_ZONE_PASS=${POSTGRES_ZONE_PASS}
+      - POSTGRES_ZONE_PORT=${POSTGRES_ZONE_PORT}
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
+      - EUREKA_PORT=${EUREKA_PORT}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+    depends_on:
+      - postgres-zone-service
+      - discovery-server
+      - kafka-broker-1
+      - zipkin
+    ports:
+      - "8082:8082"
+    networks:
+      - nbtsms
+
+  meeting-service:
+    image: seranise/meeting-service:latest
+    container_name: meeting-service
+    volumes:
+      - /home/mcharo/projects/certs:/certs:ro
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - POSTGRES_MEETING_DB=${POSTGRES_MEETING_DB}
+      - POSTGRES_MEETING_USER=${POSTGRES_MEETING_USER}
+      - POSTGRES_MEETING_PASS=${POSTGRES_MEETING_PASS}
+      - POSTGRES_MEETING_PORT=${POSTGRES_MEETING_PORT}
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
+      - EUREKA_PORT=${EUREKA_PORT}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+    depends_on:
+      - postgres-meeting-service
+      - discovery-server
+      - kafka-broker-1
+      - zipkin
+    ports:
+      - "8084:8084"
+    networks:
+      - nbtsms
+
+  notification-service:
+    image: seranise/notification-service:latest
+    container_name: notification-service
+    volumes:
+      - /home/mcharo/projects/certs:/certs:ro
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - POSTGRES_NOTIFICATION_DB=${POSTGRES_NOTIFICATION_DB}
+      - POSTGRES_NOTIFICATION_USER=${POSTGRES_NOTIFICATION_USER}
+      - POSTGRES_NOTIFICATION_PASS=${POSTGRES_NOTIFICATION_PASS}
+      - POSTGRES_NOTIFICATION_PORT=${POSTGRES_NOTIFICATION_PORT}
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
+      - EUREKA_PORT=${EUREKA_PORT}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+      - SMS_USERNAME=${SMS_USERNAME}
+      - SMS_PASSWORD=${SMS_PASSWORD}
+      - SMS_SOURCE=${SMS_SOURCE}
+      - SMS_URL=${SMS_URL}
+    depends_on:
+      - postgres-notification-service
+      - discovery-server
+      - kafka-broker-1
+      - zipkin
+    ports:
+      - "8085:8085"
+    networks:
+      - nbtsms
+
+  laboratory-service:
+    image: seranise/laboratory-service:latest
+    container_name: laboratory-service
+    volumes:
+      - /home/mcharo/projects/certs:/certs:ro
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - POSTGRES_LABORATORY_DB=${POSTGRES_LABORATORY_DB}
+      - POSTGRES_LABORATORY_USER=${POSTGRES_LABORATORY_USER}
+      - POSTGRES_LABORATORY_PASS=${POSTGRES_LABORATORY_PASS}
+      - POSTGRES_LABORATORY_PORT=${POSTGRES_LABORATORY_PORT}
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
+      - EUREKA_PORT=${EUREKA_PORT}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+    depends_on:
+      - postgres-laboratory-service
+      - discovery-server
+      - kafka-broker-1
+      - zipkin
+    ports:
+      - "8086:8086"
+    networks:
+      - nbtsms
+
+  prometheus:
+    image: prom/prometheus:v2.37.1
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - donor-service
+      - identity-service
+      - zone-service
+      - meeting-service
+      - notification-service
+      - laboratory-service
+    networks:
+      - nbtsms
+
+  grafana:
+    image: grafana/grafana-oss:8.5.2
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    volumes:
+      - ./grafana:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: password
+    networks:
+      - nbtsms
+
+
+networks:
+  nbtsms:
+    driver: bridge
