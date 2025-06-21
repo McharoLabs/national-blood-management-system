@@ -1,6 +1,6 @@
 package com.management.nationalblood.laboratoryservice.dto;
 
-import com.management.nationalblood.meeting.enums.SerumProteinStatus;
+import com.management.nationalblood.laboratoryservice.enums.SerumProteinStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

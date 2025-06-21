@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'donor-service'
+    static_configs:
+      - targets: ['donor-service:8083']
+
+  - job_name: 'identity-service'
+    static_configs:
+      - targets: ['identity-service:8081']
+
+  - job_name: 'zone-service'
+    static_configs:
+      - targets: ['zone-service:8082']
+
+  - job_name: 'meeting-service'
+    static_configs:
+      - targets: ['meeting-service:8084']
+
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:8085']
+
+  - job_name: 'laboratory-service'
+    static_configs:
+      - targets: ['laboratory-service:8086']

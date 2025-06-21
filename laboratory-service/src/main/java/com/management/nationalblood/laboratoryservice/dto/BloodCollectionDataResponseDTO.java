@@ -1,6 +1,6 @@
 package com.management.nationalblood.laboratoryservice.dto;
 
-import com.management.nationalblood.meeting.enums.BloodProductType;
+import com.management.nationalblood.laboratoryservice.enums.BloodProductType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

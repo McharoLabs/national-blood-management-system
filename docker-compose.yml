@@ -97,35 +97,38 @@ services:
     networks:
       - nbtsms
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT}
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "2181:2181"
+      - "${ZOOKEEPER_PORT}:2181"
     healthcheck:
-      test: [ "CMD-SHELL", "echo ruok | nc 127.0.0.1 2181 | grep imok" ]
+      test: [ "CMD-SHELL", "echo srvr | nc 127.0.0.1 2181 | grep Mode" ]
       interval: 10s
       timeout: 5s
       retries: 10
 
-
   kafka-broker-1:
     image: confluentinc/cp-kafka:7.0.1
     hostname: kafka-broker-1
-    container_name: kafka-broker-1
+    container_name: ${KAFKA_HOST}
     networks:
       - nbtsms
     depends_on:
       zookeeper:
         condition: service_healthy
     ports:
-      - "9092:9092"
-      - "19092:19092"
+      - "${KAFKA_PORT_EXTERNAL}:9092"
+      - "${KAFKA_PORT_INTERNAL}:19092"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:${ZOOKEEPER_PORT}"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka-broker-1:19092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:19092
+      KAFKA_ADVERTISED_LISTENERS: >
+        PLAINTEXT://localhost:${KAFKA_PORT_EXTERNAL},
+        PLAINTEXT_INTERNAL://${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
+      KAFKA_LISTENERS: >
+        PLAINTEXT://0.0.0.0:9092,
+        PLAINTEXT_INTERNAL://0.0.0.0:19092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -137,6 +140,31 @@ services:
       - nbtsms
     ports:
       - "9411:9411"
+
+  api-gateway:
+    image: seranise/api-gateway:latest
+    container_name: api-gateway
+    volumes:
+      - /home/mcharo/projects/certs:/certs:ro
+    networks:
+      - nbtsms
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_USERNAME=${EUREKA_USERNAME}
+      - EUREKA_PASSWORD=${EUREKA_PASSWORD}
+      - EUREKA_HOST=${EUREKA_HOST}
+      - EUREKA_PORT=${EUREKA_PORT}
+    depends_on:
+      discovery-server:
+        condition: service_started
+      zookeeper:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_started
+      zipkin:
+        condition: service_started
 
   discovery-server:
     image: seranise/discovery-server:latest
@@ -150,8 +178,12 @@ services:
       - EUREKA_HOST=${EUREKA_HOST}
       - EUREKA_PORT=${EUREKA_PORT}
     depends_on:
-      - zipkin
-      - kafka-broker-1
+      zookeeper:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_started
+      zipkin:
+        condition: service_started
     networks:
       - nbtsms
 
@@ -172,10 +204,16 @@ services:
       - EUREKA_PORT=${EUREKA_PORT}
       - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
     depends_on:
-      - postgres-donor-service
-      - discovery-server
-      - kafka-broker-1
-      - zipkin
+      zookeeper:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_started
+      postgres-donor-service:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
     ports:
       - "8083:8083"
     networks:
@@ -198,10 +236,16 @@ services:
       - EUREKA_PORT=${EUREKA_PORT}
       - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
     depends_on:
-      - postgres-identity-service
-      - discovery-server
-      - kafka-broker-1
-      - zipkin
+      zookeeper:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_started
+      postgres-identity-service:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
     ports:
       - "8081:8081"
     networks:
@@ -224,10 +268,16 @@ services:
       - EUREKA_PORT=${EUREKA_PORT}
       - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
     depends_on:
-      - postgres-zone-service
-      - discovery-server
-      - kafka-broker-1
-      - zipkin
+      zookeeper:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_started
+      postgres-zone-service:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
     ports:
       - "8082:8082"
     networks:
@@ -250,10 +300,16 @@ services:
       - EUREKA_PORT=${EUREKA_PORT}
       - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
     depends_on:
-      - postgres-meeting-service
-      - discovery-server
-      - kafka-broker-1
-      - zipkin
+      zookeeper:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_started
+      postgres-meeting-service:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
     ports:
       - "8084:8084"
     networks:
@@ -280,10 +336,16 @@ services:
       - SMS_SOURCE=${SMS_SOURCE}
       - SMS_URL=${SMS_URL}
     depends_on:
-      - postgres-notification-service
-      - discovery-server
-      - kafka-broker-1
-      - zipkin
+      zookeeper:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_started
+      postgres-notification-service:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
     ports:
       - "8085:8085"
     networks:
@@ -306,10 +368,16 @@ services:
       - EUREKA_PORT=${EUREKA_PORT}
       - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
     depends_on:
-      - postgres-laboratory-service
-      - discovery-server
-      - kafka-broker-1
-      - zipkin
+      zookeeper:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_started
+      postgres-laboratory-service:
+        condition: service_started
+      discovery-server:
+        condition: service_started
+      zipkin:
+        condition: service_started
     ports:
       - "8086:8086"
     networks:
@@ -324,12 +392,18 @@ services:
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     depends_on:
-      - donor-service
-      - identity-service
-      - zone-service
-      - meeting-service
-      - notification-service
-      - laboratory-service
+      donor-service:
+        condition: service_started
+      identity-service:
+        condition: service_started
+      zone-service:
+        condition: service_started
+      meeting-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      laboratory-service:
+        condition: service_started
     networks:
       - nbtsms
 
@@ -340,7 +414,8 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_started
     volumes:
       - ./grafana:/var/lib/grafana
     environment:
@@ -348,7 +423,6 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: password
     networks:
       - nbtsms
-
 
 networks:
   nbtsms:

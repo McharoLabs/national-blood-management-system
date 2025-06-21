@@ -42,3 +42,11 @@ postgres-donor
 postgres-identity
 postgres-zone
 realms
+
+
+## IGNORE ENVIRONMENT VARIABLES ##
+.env
+
+## IGNORE DOCKER CREATED FILES ##
+volumes
+grafana

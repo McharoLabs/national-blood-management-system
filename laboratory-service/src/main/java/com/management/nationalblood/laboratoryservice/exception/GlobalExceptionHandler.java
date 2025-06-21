@@ -1,7 +1,6 @@
 package com.management.nationalblood.laboratoryservice.exception;
 
-import com.management.nationalblood.meeting.dto.ErrorResponseDTO;
-import com.management.nationalblood.meeting.exception.NotFoundException;
+import com.management.nationalblood.laboratoryservice.dto.ErrorResponseDTO;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -21,8 +20,9 @@ public class GlobalExceptionHandler {
 
     // Handle Validation Exceptions (400 Bad Request)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDTO> handleValidationExceptions(MethodArgumentNotValidException ex,
-                                                                       HttpServletRequest request) {
+    public ResponseEntity<ErrorResponseDTO> handleValidationExceptions(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());

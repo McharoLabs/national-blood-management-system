@@ -1,5 +1,7 @@
 package com.management.nationalblood.laboratoryservice.event;
 
+import com.management.nationalblood.laboratoryservice.dto.BloodCollectionDataResponseDTO;
+import com.management.nationalblood.laboratoryservice.dto.HaematologicalTestResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

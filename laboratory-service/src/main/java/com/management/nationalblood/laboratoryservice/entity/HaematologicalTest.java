@@ -1,16 +1,14 @@
 package com.management.nationalblood.laboratoryservice.entity;
 
-import com.management.nationalblood.meeting.enums.SerumProteinStatus;
+import com.management.nationalblood.laboratoryservice.enums.SerumProteinStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 
@@ -22,8 +20,10 @@ public class HaematologicalTest {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(mappedBy = "haematologicalTest")
-    private Questionnaire questionnaire;
+    @OneToOne
+    @JoinColumn(nullable = false)
+    private Assessment assessment;
+
 
     @Column(nullable = false)
     private Double haemoglobinLevel;

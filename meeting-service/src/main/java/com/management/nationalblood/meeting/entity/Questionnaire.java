@@ -62,6 +62,8 @@ public class Questionnaire {
     @Column(nullable = false)
     private FormProgress formProgress;
 
+    private boolean submittedToLab = false;
+
     private LocalDateTime formStartedAt;
     private LocalDateTime lastUpdatedAt;
 
@@ -73,6 +75,13 @@ public class Questionnaire {
         if (formStartedAt == null) {
             formStartedAt = LocalDateTime.now();
         }
+
+        lastUpdatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        lastUpdatedAt = LocalDateTime.now();
     }
 
     public boolean isFormIncomplete() {

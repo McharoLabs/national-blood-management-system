@@ -1,11 +1,8 @@
 package com.management.nationalblood.laboratoryservice.entity;
 
-import com.management.nationalblood.meeting.enums.BloodProductType;
+import com.management.nationalblood.laboratoryservice.enums.BloodProductType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -13,6 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 
@@ -24,8 +22,10 @@ public class BloodCollectionData {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(mappedBy = "bloodCollectionData")
-    private Questionnaire questionnaire;
+    @OneToOne
+    @JoinColumn(nullable = false)
+    private Assessment assessment;
+
 
     @Column(nullable = false)
     private LocalTime timeNeedleInserted;

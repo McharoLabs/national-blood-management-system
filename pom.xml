@@ -23,6 +23,7 @@
         <module>api-gateway</module>
         <module>meeting-service</module>
         <module>notification-service</module>
+        <module>laboratory-service</module>
     </modules>
 
     <properties>
@@ -93,6 +94,18 @@
                             <password>${env.DOCKERHUB_PASSWORD}</password>
                         </auth>
                     </to>
+                    <extraDirectories>
+                        <paths>
+                            <path>
+                                <from>src/main/resources</from>
+                                <into>/app/resources</into>
+                                <includes>
+                                    <include>**/*.properties</include>
+                                    <exclude>**/application-prod.properties</exclude>
+                                </includes>
+                            </path>
+                        </paths>
+                    </extraDirectories>
                 </configuration>
             </plugin>
         </plugins>

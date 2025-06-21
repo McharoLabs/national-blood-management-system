@@ -1,4 +1,4 @@
-package com.management.nationalblood.meeting.enums;
+package com.management.nationalblood.laboratoryservice.enums;
 
 public enum
 ABOGroup {

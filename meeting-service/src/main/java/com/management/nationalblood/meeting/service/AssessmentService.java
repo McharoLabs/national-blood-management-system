@@ -42,4 +42,13 @@ public interface AssessmentService {
     Page<AssessmentResponseDTO> getDonorQuestionnaires(UUID donorId, Pageable pageable);
     AssessmentResponseDTO getQuestionnaireById(UUID questionnaireId) throws NotFoundException;
 
+    void sendQuestionnaireCompletedEvent() throws NotFoundException, BadRequestException;
+
+    Page<AssessmentResponseDTO> getQuestionnairesByCenterIdsAndFormStartedAtRange(
+            List<UUID> centerIds,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Pageable pageable
+    );
+
 }

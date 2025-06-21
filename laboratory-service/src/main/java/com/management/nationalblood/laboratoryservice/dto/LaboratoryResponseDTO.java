@@ -9,7 +9,7 @@ import java.time.Instant;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MeetingResponseDTO<T> {
+public class LaboratoryResponseDTO<T> {
     private Instant timestamp;
     private int status;
     private boolean success;
@@ -17,11 +17,11 @@ public class MeetingResponseDTO<T> {
     private T data;
     private String path;
 
-    public static <T> MeetingResponseDTO<T> ok(T data, String message, String path) {
-        return new MeetingResponseDTO<>(Instant.now(), 200, true, message, data, path);
+    public static <T> LaboratoryResponseDTO<T> ok(T data, String message, String path) {
+        return new LaboratoryResponseDTO<>(Instant.now(), 200, true, message, data, path);
     }
 
-    public static <T> MeetingResponseDTO<T> error(int status, String message, String path) {
-        return new MeetingResponseDTO<>(Instant.now(), status, false, message, null, path);
+    public static <T> LaboratoryResponseDTO<T> error(int status, String message, String path) {
+        return new LaboratoryResponseDTO<>(Instant.now(), status, false, message, null, path);
     }
 }

@@ -26,6 +26,28 @@ public interface QuestionnaireRepository extends JpaRepository<Questionnaire, UU
 
     @Query("""
         SELECT q FROM Questionnaire q
+        JOIN q.meeting m
+        WHERE m.centerId IN :centerIds
+          AND (:startDate IS NULL OR q.formStartedAt >= :startDate)
+          AND (:endDate IS NULL OR q.formStartedAt <= :endDate)
+        ORDER BY q.formStartedAt DESC
+    """)
+    Page<Questionnaire> findByCenterIdsAndFormStartedAtRange(
+            @Param("centerIds") List<UUID> centerIds,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            Pageable pageable
+    );
+
+    @Query("""
+        SELECT q FROM Questionnaire q
+        WHERE q.formProgress = :completedStatus
+          AND q.submittedToLab = false
+    """)
+    List<Questionnaire> findAllCompletedNotSubmittedToLab(@Param("completedStatus") FormProgress completedStatus);
+
+    @Query("""
+        SELECT q FROM Questionnaire q
         JOIN q.donor d
         WHERE q.meeting.id = :meetingId
           AND (:formProgressList IS NULL OR q.formProgress IN :formProgressList)

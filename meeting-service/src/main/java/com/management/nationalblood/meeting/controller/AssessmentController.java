@@ -18,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -28,6 +29,28 @@ public class AssessmentController {
 
     public AssessmentController(AssessmentServiceImpl assessmentService) {
         this.assessmentService = assessmentService;
+    }
+
+    @GetMapping("questionnaires/filter")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
+    public ResponseEntity<MeetingResponseDTO<Page<AssessmentResponseDTO>>> getQuestionnairesByCenterIdsAndDateRange(
+            @RequestParam List<UUID> centerIds,
+            @RequestParam(required = false) LocalDateTime startDate,
+            @RequestParam(required = false) LocalDateTime endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "formStartedAt") String sortBy,
+            HttpServletRequest request
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
+        Page<AssessmentResponseDTO> assessments = assessmentService.getQuestionnairesByCenterIdsAndFormStartedAtRange(centerIds, startDate, endDate, pageable);
+
+        MeetingResponseDTO<Page<AssessmentResponseDTO>> response = MeetingResponseDTO.ok(
+                assessments,
+                "Filtered questionnaires retrieved successfully",
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping

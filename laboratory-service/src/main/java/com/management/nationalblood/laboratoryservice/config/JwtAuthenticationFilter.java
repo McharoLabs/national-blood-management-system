@@ -1,6 +1,6 @@
 package com.management.nationalblood.laboratoryservice.config;
 
-import com.nbtsms.zone_service.utils.JWTValidator;
+import com.management.nationalblood.laboratoryservice.utils.JWTValidator;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

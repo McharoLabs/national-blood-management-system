@@ -4,6 +4,6 @@ nodes:
   - role: control-plane
     extraPortMappings:
       - containerPort: 80
-        hostPort: 80
+        hostPort: 8181 # to production change to 80
         listenAddress: "127.0.0.1"
         protocol: TCP
