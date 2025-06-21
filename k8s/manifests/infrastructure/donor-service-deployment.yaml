@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: donor-service
+  name: donor-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: donor-service
+  template:
+    metadata:
+      labels:
+        app: donor-service
+    spec:
+      containers:
+      - image: seranise/donor-service:latest
+        name: donor-service
+        ports:
+        - containerPort: 8083

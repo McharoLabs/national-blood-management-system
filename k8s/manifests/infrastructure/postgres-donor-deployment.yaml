@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: postgres-donor
+  name: postgres-donor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-donor
+  template:
+    metadata:
+      labels:
+        app: postgres-donor
+    spec:
+      containers:
+      - image: postgres:17
+        name: postgres
+        ports:
+        - containerPort: 5432
