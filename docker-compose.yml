@@ -123,10 +123,9 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:${ZOOKEEPER_PORT}"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: >
-        PLAINTEXT://localhost:${KAFKA_PORT_EXTERNAL},
-        PLAINTEXT_INTERNAL://${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
-      KAFKA_LISTENERS: >
+      KAFKA_ADVERTISED_LISTENERS: |-
+        PLAINTEXT://localhost:${KAFKA_PORT_EXTERNAL},PLAINTEXT_INTERNAL://${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
+      KAFKA_LISTENERS: |-
         PLAINTEXT://0.0.0.0:9092,
         PLAINTEXT_INTERNAL://0.0.0.0:19092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -142,7 +141,7 @@ services:
       - "9411:9411"
 
   api-gateway:
-    image: seranise/api-gateway:latest
+    image: ${DOCKER_USERNAME}/api-gateway:latest
     container_name: api-gateway
     volumes:
       - /home/mcharo/projects/certs:/certs:ro
@@ -165,9 +164,10 @@ services:
         condition: service_started
       zipkin:
         condition: service_started
+    restart: always
 
   discovery-server:
-    image: seranise/discovery-server:latest
+    image: ${DOCKER_USERNAME}/discovery-server:latest
     container_name: discovery-server
     ports:
       - "8761:8761"
@@ -184,11 +184,12 @@ services:
         condition: service_started
       zipkin:
         condition: service_started
+    restart: always
     networks:
       - nbtsms
 
   donor-service:
-    image: seranise/donor-service:latest
+    image: ${DOCKER_USERNAME}/donor-service:latest
     container_name: donor-service
     volumes:
       - /home/mcharo/projects/certs:/certs:ro
@@ -202,7 +203,7 @@ services:
       - EUREKA_PASSWORD=${EUREKA_PASSWORD}
       - EUREKA_HOST=${EUREKA_HOST}
       - EUREKA_PORT=${EUREKA_PORT}
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -216,11 +217,12 @@ services:
         condition: service_started
     ports:
       - "8083:8083"
+    restart: always
     networks:
       - nbtsms
 
   identity-service:
-    image: seranise/identity-service:latest
+    image: ${DOCKER_USERNAME}/identity-service:latest
     container_name: identity-service
     volumes:
       - /home/mcharo/projects/certs:/certs:ro
@@ -234,7 +236,7 @@ services:
       - EUREKA_PASSWORD=${EUREKA_PASSWORD}
       - EUREKA_HOST=${EUREKA_HOST}
       - EUREKA_PORT=${EUREKA_PORT}
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -248,11 +250,12 @@ services:
         condition: service_started
     ports:
       - "8081:8081"
+    restart: always
     networks:
       - nbtsms
 
   zone-service:
-    image: seranise/zone-service:latest
+    image: ${DOCKER_USERNAME}/zone-service:latest
     container_name: zone-service
     volumes:
       - /home/mcharo/projects/certs:/certs:ro
@@ -266,7 +269,7 @@ services:
       - EUREKA_PASSWORD=${EUREKA_PASSWORD}
       - EUREKA_HOST=${EUREKA_HOST}
       - EUREKA_PORT=${EUREKA_PORT}
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -280,11 +283,12 @@ services:
         condition: service_started
     ports:
       - "8082:8082"
+    restart: always
     networks:
       - nbtsms
 
   meeting-service:
-    image: seranise/meeting-service:latest
+    image: ${DOCKER_USERNAME}/meeting-service:latest
     container_name: meeting-service
     volumes:
       - /home/mcharo/projects/certs:/certs:ro
@@ -298,7 +302,7 @@ services:
       - EUREKA_PASSWORD=${EUREKA_PASSWORD}
       - EUREKA_HOST=${EUREKA_HOST}
       - EUREKA_PORT=${EUREKA_PORT}
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -312,11 +316,12 @@ services:
         condition: service_started
     ports:
       - "8084:8084"
+    restart: always
     networks:
       - nbtsms
 
   notification-service:
-    image: seranise/notification-service:latest
+    image: ${DOCKER_USERNAME}/notification-service:latest
     container_name: notification-service
     volumes:
       - /home/mcharo/projects/certs:/certs:ro
@@ -330,7 +335,7 @@ services:
       - EUREKA_PASSWORD=${EUREKA_PASSWORD}
       - EUREKA_HOST=${EUREKA_HOST}
       - EUREKA_PORT=${EUREKA_PORT}
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
       - SMS_USERNAME=${SMS_USERNAME}
       - SMS_PASSWORD=${SMS_PASSWORD}
       - SMS_SOURCE=${SMS_SOURCE}
@@ -348,11 +353,12 @@ services:
         condition: service_started
     ports:
       - "8085:8085"
+    restart: always
     networks:
       - nbtsms
 
   laboratory-service:
-    image: seranise/laboratory-service:latest
+    image: ${DOCKER_USERNAME}/laboratory-service:latest
     container_name: laboratory-service
     volumes:
       - /home/mcharo/projects/certs:/certs:ro
@@ -366,7 +372,7 @@ services:
       - EUREKA_PASSWORD=${EUREKA_PASSWORD}
       - EUREKA_HOST=${EUREKA_HOST}
       - EUREKA_PORT=${EUREKA_PORT}
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:9092
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -380,6 +386,7 @@ services:
         condition: service_started
     ports:
       - "8086:8086"
+    restart: always
     networks:
       - nbtsms
 
@@ -419,8 +426,8 @@ services:
     volumes:
       - ./grafana:/var/lib/grafana
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: password
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
     networks:
       - nbtsms
 
