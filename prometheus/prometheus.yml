@@ -5,23 +5,29 @@ scrape_configs:
   - job_name: 'donor-service'
     static_configs:
       - targets: ['donor-service:8083']
+    metrics_path: /api/v1/donors/actuator/prometheus
 
   - job_name: 'identity-service'
     static_configs:
       - targets: ['identity-service:8081']
+    metrics_path: /api/v1/identity/users/actuator/prometheus
 
   - job_name: 'zone-service'
     static_configs:
       - targets: ['zone-service:8082']
+    metrics_path: /api/v1/zones/actuator/prometheus
 
   - job_name: 'meeting-service'
     static_configs:
       - targets: ['meeting-service:8084']
+    metrics_path: /api/v1/meetings/actuator/prometheus
 
   - job_name: 'notification-service'
     static_configs:
       - targets: ['notification-service:8085']
+    metrics_path: /api/v1/notifications/actuator/prometheus
 
   - job_name: 'laboratory-service'
     static_configs:
       - targets: ['laboratory-service:8086']
+    metrics_path: /api/v1/laboratory/actuator/prometheus

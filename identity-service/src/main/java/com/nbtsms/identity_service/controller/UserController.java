@@ -248,7 +248,7 @@ public class UserController {
     }
 
     @PatchMapping("{userId}/roles")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
     @Operation(
             summary = "Assign role to user",
             description = "Assign a specific role to a user."

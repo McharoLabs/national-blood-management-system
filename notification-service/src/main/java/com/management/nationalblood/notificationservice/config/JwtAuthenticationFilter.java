@@ -1,12 +1,12 @@
 package com.management.nationalblood.notificationservice.config;
 
-import com.nbtsms.zone_service.utils.JWTValidator;
+import com.management.nationalblood.notificationservice.utils.JWTValidator;
 import io.jsonwebtoken.Claims;
+import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
