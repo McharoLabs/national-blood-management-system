@@ -131,6 +131,22 @@ services:
     ports:
       - "9411:9411"
 
+  discovery-server:
+    image: ${DOCKER_USERNAME}/discovery-server:latest
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_USERNAME: ${EUREKA_USERNAME}
+      EUREKA_PASSWORD: ${EUREKA_PASSWORD}
+      EUREKA_HOST: ${EUREKA_HOST}
+      EUREKA_PORT: ${EUREKA_PORT}
+    depends_on:
+      - zipkin
+    networks:
+      - nbtsms
+
   api-gateway:
     image: ${DOCKER_USERNAME}/api-gateway:latest
     container_name: api-gateway
@@ -147,30 +163,8 @@ services:
       EUREKA_HOST: ${EUREKA_HOST}
       EUREKA_PORT: ${EUREKA_PORT}
     depends_on:
+      - zipkin
       - discovery-server
-      - zookeeper
-      - kafka-broker-1
-      - zipkin
-    restart: always
-
-  discovery-server:
-    image: ${DOCKER_USERNAME}/discovery-server:latest
-    container_name: discovery-server
-    ports:
-      - "8761:8761"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      EUREKA_USERNAME: ${EUREKA_USERNAME}
-      EUREKA_PASSWORD: ${EUREKA_PASSWORD}
-      EUREKA_HOST: ${EUREKA_HOST}
-      EUREKA_PORT: ${EUREKA_PORT}
-    depends_on:
-      - zookeeper
-      - kafka-broker-1
-      - zipkin
-    restart: always
-    networks:
-      - nbtsms
 
   donor-service:
     image: ${DOCKER_USERNAME}/donor-service:latest
@@ -188,15 +182,14 @@ services:
       EUREKA_HOST: ${EUREKA_HOST}
       EUREKA_PORT: ${EUREKA_PORT}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx512m"
     depends_on:
-      - zookeeper
-      - kafka-broker-1
-      - postgres-donor-service
-      - discovery-server
       - zipkin
+      - discovery-server
+      - postgres-donor-service
+      - kafka-broker-1
     ports:
       - "8083:8083"
-    restart: always
     networks:
       - nbtsms
 
@@ -216,15 +209,15 @@ services:
       EUREKA_HOST: ${EUREKA_HOST}
       EUREKA_PORT: ${EUREKA_PORT}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx512m"
     depends_on:
-      - zookeeper
-      - kafka-broker-1
-      - postgres-identity-service
-      - discovery-server
       - zipkin
+      - discovery-server
+      - api-gateway
+      - postgres-identity-service
+      - kafka-broker-1
     ports:
       - "8081:8081"
-    restart: always
     networks:
       - nbtsms
 
@@ -244,15 +237,15 @@ services:
       EUREKA_HOST: ${EUREKA_HOST}
       EUREKA_PORT: ${EUREKA_PORT}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx512m"
     depends_on:
-      - zookeeper
-      - kafka-broker-1
-      - postgres-zone-service
-      - discovery-server
       - zipkin
+      - discovery-server
+      - api-gateway
+      - postgres-zone-service
+      - kafka-broker-1
     ports:
       - "8082:8082"
-    restart: always
     networks:
       - nbtsms
 
@@ -272,15 +265,15 @@ services:
       EUREKA_HOST: ${EUREKA_HOST}
       EUREKA_PORT: ${EUREKA_PORT}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx512m"
     depends_on:
-      - zookeeper
-      - kafka-broker-1
-      - postgres-meeting-service
-      - discovery-server
       - zipkin
+      - discovery-server
+      - api-gateway
+      - postgres-meeting-service
+      - kafka-broker-1
     ports:
       - "8084:8084"
-    restart: always
     networks:
       - nbtsms
 
@@ -300,19 +293,19 @@ services:
       EUREKA_HOST: ${EUREKA_HOST}
       EUREKA_PORT: ${EUREKA_PORT}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx512m"
       SMS_USERNAME: ${SMS_USERNAME}
       SMS_PASSWORD: ${SMS_PASSWORD}
       SMS_SOURCE: ${SMS_SOURCE}
       SMS_URL: ${SMS_URL}
     depends_on:
-      - zookeeper
-      - kafka-broker-1
-      - postgres-notification-service
-      - discovery-server
       - zipkin
+      - discovery-server
+      - api-gateway
+      - postgres-notification-service
+      - kafka-broker-1
     ports:
       - "8085:8085"
-    restart: always
     networks:
       - nbtsms
 
@@ -332,15 +325,15 @@ services:
       EUREKA_HOST: ${EUREKA_HOST}
       EUREKA_PORT: ${EUREKA_PORT}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_HOST}:${KAFKA_PORT_INTERNAL}
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx512m"
     depends_on:
-      - zookeeper
-      - kafka-broker-1
-      - postgres-laboratory-service
-      - discovery-server
       - zipkin
+      - discovery-server
+      - api-gateway
+      - postgres-laboratory-service
+      - kafka-broker-1
     ports:
       - "8086:8086"
-    restart: always
     networks:
       - nbtsms
 
