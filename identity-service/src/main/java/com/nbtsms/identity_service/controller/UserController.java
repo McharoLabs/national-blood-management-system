@@ -86,6 +86,7 @@ public class UserController {
     }
 
     @PutMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
     @Operation(
             summary = "Update an existing user",
             description = "Allows admin or super admin to update an existing user’s profile information."
@@ -336,6 +337,7 @@ public class UserController {
 
 
     @GetMapping("{staffId}/exists")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
     @Operation(
             summary = "Check if staff exists",
             description = "Checks if staff exists in the system"

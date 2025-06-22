@@ -34,6 +34,7 @@ public class CenterStaffController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
     @Operation(
             summary = "Retrieve Center Staffs",
             description = "Helps to find all center staffs by given centerId"

@@ -69,8 +69,8 @@ public class CenterController {
     }
 
 
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<ZoneResponseWrapperDTO<Map<String, Object>>> createCenter(
             @Valid @RequestBody CreateCenterDTO createCenterDTO,
             HttpServletRequest request
@@ -84,7 +84,7 @@ public class CenterController {
     }
 
     @GetMapping("{zoneId}/zone")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
     public ResponseEntity<ZoneResponseWrapperDTO<Page<CenterResponseDTO>>> getAllCentersByZone(
             @PathVariable UUID zoneId,
             @RequestParam(required = false) String name,

@@ -6,6 +6,7 @@ import com.management.nationalblood.meeting.service.impl.AssignedStaffServiceImp
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ public class StaffAssignmentController {
     }
 
     @GetMapping("center/{centerId}")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
     public ResponseEntity<MeetingResponseDTO<List<AssignedStaffResponseDTO>>> getActiveMeetingsWithStaffByCenter(
             @PathVariable UUID centerId,
             HttpServletRequest request

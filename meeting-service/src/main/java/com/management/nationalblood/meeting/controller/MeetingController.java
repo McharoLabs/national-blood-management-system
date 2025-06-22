@@ -45,6 +45,7 @@ public class MeetingController {
     }
 
     @GetMapping("meeting/{meetingId}")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
     public ResponseEntity<MeetingResponseDTO<MeetingDTO>> getMeeting(
             @PathVariable UUID meetingId,
             HttpServletRequest request
@@ -58,6 +59,7 @@ public class MeetingController {
     }
 
     @GetMapping("organizer/{organizerId}/meetings")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
     public ResponseEntity<MeetingResponseDTO<Page<MeetingDTO>>> getMeetingsByOrganizer(
             @PathVariable UUID organizerId,
             @RequestParam(required = false) MeetingStatus status,
@@ -79,6 +81,7 @@ public class MeetingController {
     }
 
     @GetMapping("staff/{staffId}/meetings")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
     public ResponseEntity<MeetingResponseDTO<Page<MeetingDTO>>> getMeetingsByStaff(
             @PathVariable UUID staffId,
             @RequestParam(required = false) MeetingStatus status,

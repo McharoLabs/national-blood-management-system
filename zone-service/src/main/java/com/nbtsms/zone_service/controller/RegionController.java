@@ -33,8 +33,8 @@ public class RegionController {
         return regionService.regionExists(regionId);
     }
 
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_USER')")
     public ResponseEntity<ZoneResponseWrapperDTO<Map<String, Object>>> createRegion(
             @Valid @RequestBody CreateRegionDTO createRegionDTO,
             HttpServletRequest request
@@ -48,6 +48,7 @@ public class RegionController {
     }
 
     @GetMapping("{zoneId}/zone")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
     public ResponseEntity<ZoneResponseWrapperDTO<Page<RegionResponseDTO>>> getAllByZone(
             @PathVariable UUID zoneId,
             @RequestParam(required = false) String name,
@@ -66,6 +67,7 @@ public class RegionController {
     }
 
     @GetMapping("region/{zoneId}/all")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
     public ResponseEntity<ZoneResponseWrapperDTO<List<RegionResponseDTO>>> getRegionsByZoneId(
             @PathVariable UUID zoneId,
             HttpServletRequest request
@@ -79,6 +81,7 @@ public class RegionController {
     }
 
     @GetMapping("{regionId}/region")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SUPER_USER', 'ROLE_ADMIN', 'ROLE_COUNSELOR', 'ROLE_LAB_TECHNICIAN', 'ROLE_ORGANIZER')")
     public ResponseEntity<ZoneResponseWrapperDTO<RegionResponseDTO>> getRegionById(
             @PathVariable UUID regionId,
             HttpServletRequest request
