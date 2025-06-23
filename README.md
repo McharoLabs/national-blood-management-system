@@ -67,11 +67,11 @@ To ensure all microservices and infrastructure containers run smoothly, please m
 
 - **On Docker Desktop (Windows/Mac):**
 
-    1. Open Docker Desktop.
-    2. Go to **Settings** (gear icon).
-    3. Navigate to **Resources** > **Advanced**.
-    4. Adjust the **Memory** slider to at least **8 GB**.
-    5. Click **Apply & Restart**.
+  1. Open Docker Desktop.
+  2. Go to **Settings** (gear icon).
+  3. Navigate to **Resources** > **Advanced**.
+  4. Adjust the **Memory** slider to at least **8 GB**.
+  5. Click **Apply & Restart**.
 
 - **On Linux:**
 
@@ -92,9 +92,10 @@ Failure to allocate sufficient memory may cause containers to crash or restart f
 
 2. **Create .env file:**
 
-    Use the provided **.env.example** to set the environment variables
-    ```
-    cp .env.example .env
+   Use the provided **.env.example** to set the environment variables
+
+   ```
+   cp .env.example .env
    ```
 
 # 📲 SMS Provider - Beem Africa
@@ -128,16 +129,18 @@ SMS_URL=https://apisms.beem.africa/v1/send
 - [Beem Africa Official Website](https://beem.africa/)
 - [Beem SMS API Documentation](https://docs.beem.africa/)
 
-
 Fill in the required values for databases, Kafka, Eureka, SMS, etc
 
 ## 🐳 Docker Deployment
+
 Start all services using Docker Compose
+
 ```shell
 docker compose up -d
 ```
 
 Check running containers:
+
 ```shell
 docker ps
 ```
@@ -148,6 +151,7 @@ docker ps
 - **Grafana:** [http://localhost:3000](http://localhost:3000)  
   Default login: `admin / password`
 - **Zipkin (Tracing):** [http://localhost:9411](http://localhost:9411)
+
 ---
 
 ## 📊 Monitoring & Tracing Dashboards
@@ -186,14 +190,8 @@ Prometheus metrics page displaying real-time system metrics collected from servi
 
 ![Prometheus Metrics](images/prometheus-metrics.png)
 
-
-### Prometheus Metrics
-
-Prometheus metrics page displaying real-time system metrics collected from services:
-
-![Prometheus Metrics](images/prometheus-metrics.png)
-
 ---
+
 ## Docker Running containers
 
 Docker running containers showing CPU usage and Container memory usage
@@ -204,18 +202,17 @@ Docker running containers showing CPU usage and Container memory usage
 
 After deploying the system to Kubernetes, you can access the following services using the cluster's external IP:
 
-| Service           | Access Method                   |
-|-------------------|---------------------------------|
-| **Eureka Server** | `http://<external-ip>:8761`    |
-| **API Gateway**   | `http://<external-ip>:8080`    |
-| **Prometheus**    | `http://<external-ip>:9090`    |
-| **Grafana**       | `http://<external-ip>:3000`    |
-| **Zipkin**        | `http://<external-ip>:9411`    |
+| Service           | Access Method               |
+| ----------------- | --------------------------- |
+| **Eureka Server** | `http://<external-ip>:8761` |
+| **API Gateway**   | `http://<external-ip>:8080` |
+| **Prometheus**    | `http://<external-ip>:9090` |
+| **Grafana**       | `http://<external-ip>:3000` |
+| **Zipkin**        | `http://<external-ip>:9411` |
 
 Replace `<external-ip>` with your cluster's public IP or domain name as configured in your Ingress or LoadBalancer.
 
 ---
-
 
 ---
 
@@ -243,8 +240,4 @@ This project is licensed under the [MIT License](LICENSE). You are free to use, 
 For inquiries, support, or contributions:
 
 **McharoLabs**  
-[https://github.com/McharoLabs](https://github.com/McharoLabs)  
-
-
-
-
+[https://github.com/McharoLabs](https://github.com/McharoLabs)
