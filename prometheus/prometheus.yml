@@ -45,16 +45,3 @@ scrape_configs:
         labels:
           application: 'Laboratory Service Application'
 
-  - job_name: 'api_gateway'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets: ['api-gateway:8080']
-        labels:
-          application: 'API Gateway Application'
-
-  - job_name: 'discovery_server'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets: ['discovery-server:8761']
-        labels:
-          application: 'Discovery Server Application'

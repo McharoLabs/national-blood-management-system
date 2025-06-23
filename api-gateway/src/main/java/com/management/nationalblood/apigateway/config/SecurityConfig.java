@@ -43,8 +43,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",
                                 "/swagger-ui.html",
-                                "/api-docs/**",
-                                "/actuator/**"
+                                "/api-docs/**"
                         ).permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(

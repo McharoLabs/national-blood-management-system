@@ -128,6 +128,7 @@ services:
     container_name: zipkin
     networks:
       - nbtsms
+    restart: always
     ports:
       - "9411:9411"
 
