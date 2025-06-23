@@ -4,42 +4,42 @@ global:
 
 scrape_configs:
   - job_name: 'donor_service'
-    metrics_path: '/actuator/prometheus'
+    metrics_path: '/api/v1/donors/actuator/prometheus'
     static_configs:
       - targets: ['donor-service:8083']
         labels:
           application: 'Donor Service Application'
 
   - job_name: 'identity_service'
-    metrics_path: '/actuator/prometheus'
+    metrics_path: '/api/v1/identity/users/actuator/prometheus'
     static_configs:
       - targets: ['identity-service:8081']
         labels:
           application: 'Identity Service Application'
 
   - job_name: 'zone_service'
-    metrics_path: '/actuator/prometheus'
+    metrics_path: '/api/v1/zones/actuator/prometheus'
     static_configs:
       - targets: ['zone-service:8082']
         labels:
           application: 'Zone Service Application'
 
   - job_name: 'meeting_service'
-    metrics_path: '/actuator/prometheus'
+    metrics_path: '/api/v1/meetings/actuator/prometheus'
     static_configs:
       - targets: ['meeting-service:8084']
         labels:
           application: 'Meeting Service Application'
 
   - job_name: 'notification_service'
-    metrics_path: '/actuator/prometheus'
+    metrics_path: '/api/v1/notifications/actuator/prometheus'
     static_configs:
       - targets: ['notification-service:8085']
         labels:
           application: 'Notification Service Application'
 
   - job_name: 'laboratory_service'
-    metrics_path: '/actuator/prometheus'
+    metrics_path: '/api/v1/laboratory/actuator/prometheus'
     static_configs:
       - targets: ['laboratory-service:8086']
         labels:

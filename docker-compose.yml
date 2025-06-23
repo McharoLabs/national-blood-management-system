@@ -338,7 +338,7 @@ services:
       - nbtsms
 
   prometheus:
-    image: prom/prometheus:v2.37.1
+    image: prom/prometheus:latest
     container_name: prometheus
     restart: always
     ports:
