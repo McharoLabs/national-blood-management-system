@@ -1,33 +1,60 @@
 global:
-  scrape_interval: 15s
+  scrape_interval: 10s
+  evaluation_interval: 10s
 
 scrape_configs:
-  - job_name: 'donor-service'
+  - job_name: 'donor_service'
+    metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['donor-service:8083']
-    metrics_path: /api/v1/donors/actuator/prometheus
+        labels:
+          application: 'Donor Service Application'
 
-  - job_name: 'identity-service'
+  - job_name: 'identity_service'
+    metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['identity-service:8081']
-    metrics_path: /api/v1/identity/users/actuator/prometheus
+        labels:
+          application: 'Identity Service Application'
 
-  - job_name: 'zone-service'
+  - job_name: 'zone_service'
+    metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['zone-service:8082']
-    metrics_path: /api/v1/zones/actuator/prometheus
+        labels:
+          application: 'Zone Service Application'
 
-  - job_name: 'meeting-service'
+  - job_name: 'meeting_service'
+    metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['meeting-service:8084']
-    metrics_path: /api/v1/meetings/actuator/prometheus
+        labels:
+          application: 'Meeting Service Application'
 
-  - job_name: 'notification-service'
+  - job_name: 'notification_service'
+    metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['notification-service:8085']
-    metrics_path: /api/v1/notifications/actuator/prometheus
+        labels:
+          application: 'Notification Service Application'
 
-  - job_name: 'laboratory-service'
+  - job_name: 'laboratory_service'
+    metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['laboratory-service:8086']
-    metrics_path: /api/v1/laboratory/actuator/prometheus
+        labels:
+          application: 'Laboratory Service Application'
+
+  - job_name: 'api_gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['api-gateway:8080']
+        labels:
+          application: 'API Gateway Application'
+
+  - job_name: 'discovery_server'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['discovery-server:8761']
+        labels:
+          application: 'Discovery Server Application'

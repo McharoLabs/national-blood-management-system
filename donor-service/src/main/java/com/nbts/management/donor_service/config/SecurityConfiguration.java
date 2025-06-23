@@ -56,7 +56,7 @@ public class SecurityConfiguration {
                                 "/public/**",
                                 "/error",
                                 "/appointments/create",
-                                "/api/v1/donors/actuator/prometheus"
+                                "/actuator/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

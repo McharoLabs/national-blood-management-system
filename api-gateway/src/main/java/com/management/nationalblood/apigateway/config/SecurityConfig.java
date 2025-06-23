@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .cors(corsSpec -> {}) // needed to activate CorsWebFilter
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .pathMatchers("/api/v1/**/actuator/prometheus").permitAll()
+                        .pathMatchers("/api/v1/*/actuator/**").permitAll()
                         .pathMatchers(
                                 "/eureka/**",
                                 "/api/v1/identity/users/auth/**",

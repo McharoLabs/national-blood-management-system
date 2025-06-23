@@ -55,7 +55,7 @@ public class SecurityConfiguration {
                         .requestMatchers(
                                 "/public/**",
                                 "/error",
-                                "/api/v1/laboratory/actuator/prometheus"
+                                "/actuator/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
