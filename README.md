@@ -97,23 +97,36 @@ Failure to allocate sufficient memory may cause containers to crash or restart f
     cp .env.example .env
    ```
 
-## ⚠️ Important Notes
+# 📲 SMS Provider - Beem Africa
 
-- This system uses **Beem Africa** as the SMS service provider.
-- You must request and configure a valid **Sender Name** with Beem for SMS delivery.
-- The following environment variables are required for SMS integration:
+This project uses **Beem Africa** as the official SMS gateway provider for sending SMS notifications across the National Blood Transfusion Service Management System (NBT-SMS).
 
-  ```env
-  SMS_USERNAME=
-  SMS_PASSWORD=
-  SMS_SOURCE=
-  SMS_URL=https://apisms.beem.africa/v1/send
-  ```
-  ## 🌐 Useful Links
+---
+
+## ⚙️ SMS Integration Requirements
+
+To successfully send SMS messages via Beem:
+
+- You **must** apply for and obtain an approved **Sender Name** from Beem.
+- You require valid API credentials provided by Beem.
+
+---
+
+## 📁 Required Environment Variables
+
+Ensure the following variables are set in your `.env` file:
+
+```env
+SMS_USERNAME=
+SMS_PASSWORD=
+SMS_SOURCE=
+SMS_URL=https://apisms.beem.africa/v1/send
+```
+
+## 🌐 Useful Links
 
 - [Beem Africa Official Website](https://beem.africa/)
 - [Beem SMS API Documentation](https://docs.beem.africa/)
-
 
 
 Fill in the required values for databases, Kafka, Eureka, SMS, etc
