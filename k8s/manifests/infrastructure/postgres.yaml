@@ -1,0 +1,532 @@
+# -----------------------------
+# postgres-donor-service
+# -----------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-donor-service
+  labels:
+    app: postgres-donor-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-donor-service
+  template:
+    metadata:
+      labels:
+        app: postgres-donor-service
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_DONOR_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_DONOR_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_DONOR_PASS
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc-donor
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-donor-service
+  labels:
+    app: postgres-donor-service
+spec:
+  selector:
+    app: postgres-donor-service
+  ports:
+    - protocol: TCP
+      port: 5434
+      targetPort: 5432
+
+# -----------------------------
+# postgres-identity-service
+# -----------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-identity-service
+  labels:
+    app: postgres-identity-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-identity-service
+  template:
+    metadata:
+      labels:
+        app: postgres-identity-service
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_IDENTITY_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_IDENTITY_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_IDENTITY_PASS
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc-identity
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-identity-service
+  labels:
+    app: postgres-identity-service
+spec:
+  selector:
+    app: postgres-identity-service
+  ports:
+    - protocol: TCP
+      port: 5435
+      targetPort: 5432
+
+# -----------------------------
+# postgres-zone-service
+# -----------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-zone-service
+  labels:
+    app: postgres-zone-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-zone-service
+  template:
+    metadata:
+      labels:
+        app: postgres-zone-service
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_ZONE_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_ZONE_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_ZONE_PASS
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc-zone
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-zone-service
+  labels:
+    app: postgres-zone-service
+spec:
+  selector:
+    app: postgres-zone-service
+  ports:
+    - protocol: TCP
+      port: 5436
+      targetPort: 5432
+
+# -----------------------------
+# postgres-meeting-service
+# -----------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-meeting-service
+  labels:
+    app: postgres-meeting-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-meeting-service
+  template:
+    metadata:
+      labels:
+        app: postgres-meeting-service
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_MEETING_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_MEETING_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_MEETING_PASS
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc-meeting
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-meeting-service
+  labels:
+    app: postgres-meeting-service
+spec:
+  selector:
+    app: postgres-meeting-service
+  ports:
+    - protocol: TCP
+      port: 5439
+      targetPort: 5432
+
+# -----------------------------
+# postgres-notification-service
+# -----------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-notification-service
+  labels:
+    app: postgres-notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-notification-service
+  template:
+    metadata:
+      labels:
+        app: postgres-notification-service
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_NOTIFICATION_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_NOTIFICATION_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_NOTIFICATION_PASS
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc-notification
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-notification-service
+  labels:
+    app: postgres-notification-service
+spec:
+  selector:
+    app: postgres-notification-service
+  ports:
+    - protocol: TCP
+      port: 5440
+      targetPort: 5432
+
+# -----------------------------
+# postgres-laboratory-service
+# -----------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-laboratory-service
+  labels:
+    app: postgres-laboratory-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-laboratory-service
+  template:
+    metadata:
+      labels:
+        app: postgres-laboratory-service
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_LABORATORY_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_LABORATORY_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_LABORATORY_PASS
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc-laboratory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-laboratory-service
+  labels:
+    app: postgres-laboratory-service
+spec:
+  selector:
+    app: postgres-laboratory-service
+  ports:
+    - protocol: TCP
+      port: 5441
+      targetPort: 5432
+---
+
+# ------------------------------------------------------------
+# PERSISTENCE
+# ------------------------------------------------------------
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv-donor
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /volume/postgres-donor-service
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc-donor
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv-identity
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /volume/postgres-identity-service
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc-identity
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv-zone
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /volume/postgres-zone-service
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc-zone
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv-meeting
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /volume/postgres-meeting-service
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc-meeting
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv-notification
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /volume/postgres-notification-service
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc-notification
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv-laboratory
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /volume/postgres-laboratory-service
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc-laboratory
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
