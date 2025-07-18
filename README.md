@@ -318,10 +318,45 @@ After applying Kubernetes Deployment and Services:
 
 ![Kubernetes Applying Deployment & Service Test](images/kubernates.png)
 
+### See secrets
+```shell
+kubectl get secrets
+```
+![Secrets Node](images/secrets.png)
+
+### See actual secrets
+```shell
+kubectl get secret app-secrets -o yaml
+```
+![All Secrets](images/secrets-list.png)
+
+### See Kubernetes cluster created
+```shell
+kubectl get all
+```
+![Kubernetes Cluster](images/k8s-list.png)
+
+### Checking pods and status
+```shell
+kubectl get pods
+```
+![Kubernetes Cluster Pods](images/pods.png)
+
+### Forwarding Postgres Pod Port to External
+List all svc
+```shell
+kubectl get svc
+```
+
+Select svc then forward the port
+```shell
+ kubectl port-forward svc/postgres-zone-service  5436:5436
+```
+![SVC port forward](images/postgres-svc-export.png)
+
 ### Stopping / Cleaning up
 If you want to delete the Postgres deployment, service, and secrets:
 ```bash
-    kubectl delete deployment postgres
-    kubectl delete service postgres
-    kubectl delete secret app-secrets
+    kubectl delete -f postgres.yaml
+    kubectl delete -f app-secrets
 ```
